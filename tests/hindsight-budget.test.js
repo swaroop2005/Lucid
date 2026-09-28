@@ -10,6 +10,22 @@ import {buildMemoryPacket} from '../server/memory-evidence.js';
 import {articleScopeTags} from '../server/hindsight-scope.js';
 import {buildDerivedPlan,HindsightDerived} from '../server/hindsight-derived.js';
 
+test('experiment ceiling is checked atomically against all prior reservations',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'hindsight-experiment-budget-'));
+ try{
+  const ledgerPath=join(dir,'ledger.json'),ledger=new HindsightCreditBudget(ledgerPath),secret={baseUrl:'https://api.hindsight.vectorize.io',bank:'fake-bank',apiKey:'test-only-secret'},connectionId=hash([secret.baseUrl,secret.bank,hash(secret.apiKey)]);
+  ledger.initialize();ledger.update(l=>Object.assign(l,{connectionId,workspaceId:'workspace'}));
+  const authorize=createInvestigationAuthorizer({ledgerPath,reservationCeilingUSD:.15,store:{read:()=>({workspaceId:'workspace'})},settings:{read:()=>secret}});
+  const input={id:'one',kind:'investigation-reflect',budget:'high',connectionId,request:{query:'bounded',options:{budget:'high',includeFacts:true,excludeMentalModels:true}}};
+  await authorize(input);
+  await assert.rejects(authorize({...input,id:'two'}),/ceiling/);
+  assert.equal(ledger.read().calls.length,1);
+  assert.throws(()=>ledger.reserve({id:'atomic',operation:'investigation-reflect',category:'evaluation',reservedUSD:.1,reservationCeilingUSD:.15}),/ceiling/);
+  assert.throws(()=>ledger.reserve({id:'bad-limit',operation:'investigation-reflect',category:'evaluation',reservedUSD:.01,reservationCeilingUSD:NaN}),/ceiling/);
+  assert.equal(ledger.summary().reservedUSD,.1);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
 test('app budget requires pinned authority, locks reservations and stops after insufficient credit',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'hindsight-app-budget-'));
  try{

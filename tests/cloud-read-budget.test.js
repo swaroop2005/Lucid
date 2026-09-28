@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{mkdtempSync,readFileSync,rmSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';
+import{hash}from'../server/domain.js';import{createCloudReadAuthorizer}from'../server/cloud-read-budget.js';
+test('fresh-machine recovery journals only scoped zero-credit reads without manufacturing paid authority',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'cloud-read-'));try{const secret={baseUrl:'https://example.test',bank:'private-bank',apiKey:'fake'},connectionId=hash([secret.baseUrl,secret.bank,hash(secret.apiKey)]),readLedgerPath=join(dir,'reads.json');const authorize=createCloudReadAuthorizer({settings:{read:()=>secret},ledgerPath:join(dir,'missing-paid.json'),readLedgerPath});const input={id:'read1',kind:'workspace-read',connectionId,workspaceId:'one-workspace',bank:secret.bank,request:{operation:'get-document',documentId:'lucid-ops-one-workspace-chunk-'+'a'.repeat(64)}};
+ await assert.rejects(authorize({...input,kind:'workspace-retain'}),/does not match/);await assert.rejects(authorize({...input,request:{...input.request,documentId:'lucid-ops-foreign-chunk-'+'a'.repeat(64)}}),/outside/);
+ const receipt=await authorize(input);await receipt.complete();const journal=JSON.parse(readFileSync(readLedgerPath));assert.equal(journal.capUSD,0);assert.deepEqual(journal.categoryCaps,{metadata:0});assert.equal(journal.calls.length,1);assert.equal(journal.calls[0].reservedUSD,0);assert.equal(journal.calls[0].status,'completed');await assert.rejects(authorize({...input,id:'read2',connectionId:'old'}),/does not match/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});

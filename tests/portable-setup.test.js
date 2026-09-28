@@ -6,6 +6,9 @@ import {join,resolve} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {Store} from '../server/db.js';
 import {hash} from '../server/domain.js';
+import {CloudSettings} from '../server/settings.js';
+import {createCheckpointBudget} from '../server/cloud-checkpoint-budget.js';
+import {createInvestigationAuthorizer} from '../server/hindsight-budget.js';
 const run=(script,args=[],env={})=>spawnSync(process.execPath,[resolve('scripts',script),...args],{encoding:'utf8',env:{...process.env,...env}});
 test('private handoff preserves immutable library objects without cases, credentials or credit authority',()=>{
  const dir=mkdtempSync(join(tmpdir(),'lucid-handoff-'));try{
@@ -20,7 +23,7 @@ test('private handoff preserves immutable library objects without cases, credent
   const changed=JSON.parse(raw);changed.payload.articles[0].fix='Changed';writeFileSync(file,JSON.stringify(changed));assert.notEqual(run('private-library.js',['import','--workspace',join(dir,'bad.sqlite'),'--file',file,'--acknowledge-private-data']).status,0);
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
-test('portable authorization is explicit, workspace-bound, local and never resets an existing ledger',()=>{
+test('portable authorization is explicit, workspace-bound, local and never resets an existing ledger',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'lucid-authority-'));try{
   const env={DATA_FILE:join(dir,'workspace.sqlite'),SETTINGS_FILE:join(dir,'credentials.json'),HINDSIGHT_CREDIT_LEDGER:join(dir,'ledger.json'),HINDSIGHT_BASE_URL:'https://api.hindsight.vectorize.io',HINDSIGHT_BANK:'synthetic-bank',HINDSIGHT_API_KEY:'synthetic-test-key'};
   const s=new Store(env.DATA_FILE);s.update(x=>{x.workspaceId='synthetic-workspace';});s.close();
@@ -29,5 +32,18 @@ test('portable authorization is explicit, workspace-bound, local and never reset
   assert.equal(run('authorize-cloud.js',['--cap-usd','10','--acknowledge-paid-usage'],env).status,0);
   const ledger=JSON.parse(readFileSync(env.HINDSIGHT_CREDIT_LEDGER));assert.equal(ledger.capUSD,10);assert.equal(ledger.workspaceId,'synthetic-workspace');assert.equal(ledger.connectionId,hash([env.HINDSIGHT_BASE_URL,env.HINDSIGHT_BANK,hash(env.HINDSIGHT_API_KEY)]));assert.deepEqual(ledger.calls,[]);
   assert.notEqual(run('authorize-cloud.js',['--cap-usd','20','--acknowledge-paid-usage'],env).status,0);assert.equal(JSON.parse(readFileSync(env.HINDSIGHT_CREDIT_LEDGER)).capUSD,10);
+  const store=new Store(env.DATA_FILE),settings=new CloudSettings(env.SETTINGS_FILE),budget=createCheckpointBudget({ledgerPath:env.HINDSIGHT_CREDIT_LEDGER,store,settings});
+  try{
+   assert.equal(budget.status().authorized,true);assert.equal(budget.status().remainingUSD,9);assert.equal(budget.status().ingestionRemainingUSD,4);
+   const request={workspaceId:ledger.workspaceId,connectionId:ledger.connectionId,bank:env.HINDSIGHT_BANK,forecast:{totalReservationUSD:4}};
+   assert.equal(budget.canSpend(request),true);assert.equal(budget.canSpend({...request,forecast:{totalReservationUSD:4.01}}),false);
+   const authorize=createInvestigationAuthorizer({ledgerPath:env.HINDSIGHT_CREDIT_LEDGER,store,settings});
+   const call=await authorize({id:'portable-reservation',kind:'investigation-recall',budget:'mid',connectionId:ledger.connectionId,request:{options:{budget:'mid',maxTokens:256,maxChunkTokens:256}}});
+   call.complete({});assert.equal(budget.status().reservedUSD,.05);assert.equal(budget.status().remainingUSD,8.95);
+   settings.save({...settings.read(),apiKey:'different-synthetic-key'});assert.equal(budget.status().authorized,false);
+   await assert.rejects(()=>authorize({id:'wrong-key',kind:'investigation-metadata',budget:'mid',connectionId:ledger.connectionId,request:{}}),/does not match/);
+   assert.equal(JSON.parse(readFileSync(env.HINDSIGHT_CREDIT_LEDGER)).calls.length,1);
+  }finally{store.close();}
+
  }finally{rmSync(dir,{recursive:true,force:true});}
 });

@@ -1,5 +1,18 @@
 import {test,expect} from '@playwright/test';
 
+test('conditional investigation exposes original evidence without presenting an audited fix',async({page})=>{
+ const state=await (await page.request.get('/api/workspace')).json(),c=state.cases.find(c=>c.id==='CS-1042');
+ c.analysis={useMemory:true,provider:'Hindsight evidence plan',at:new Date().toISOString(),finding:'An upstream limit remains a hypothesis.',questions:[],references:[],candidates:[],incidentCandidates:[],modelResult:{mode:'conditional-investigation-plan',citations:['KA-0001'],nextQuestions:[],evidenceIds:['KA-0001'],sourceEvidence:[{handle:'E1',sourceId:'KA-0001',sourceKind:'experience-memory',title:'Historical proxy limit',url:'https://example.com/source',authority:'historical-episode',source:{reportedAction:'Historical configuration adjustment.',limitations:'Reported recovery, not a current fix.',quote:'<script>window.evidenceExecuted=true</script>'}}]}};
+ await page.route('**/api/workspace',route=>route.fulfill({json:state}));
+ await page.goto('/#cases');await page.getByRole('tab',{name:'Investigation',exact:true}).click();await page.getByText('Evidence provided to the AI',{exact:true}).click();
+ await expect(page.getByText('Investigation plan · review required',{exact:true})).toBeVisible();
+ await expect(page.getByText(/The proposed explanations and diagnostic branches still need review/)).toBeVisible();
+ await expect(page.getByText('Diagnostic review · two reasoning steps',{exact:true})).toHaveCount(0);
+ await page.getByText('KA-0001 · Historical proxy limit',{exact:true}).click();
+ const panel=page.locator('details.memory-provenance');await expect(panel.locator('pre')).toContainText('Reported recovery, not a current fix.');
+ await expect(panel.locator('script')).toHaveCount(0);expect(await page.evaluate(()=>window.evidenceExecuted)).toBeUndefined();
+});
+
 test('Hindsight is the only AI workflow and exposes search depth and evidence contribution',async({page})=>{
  const requests=[],errors=[];page.on('pageerror',error=>errors.push(error.message));
  let state=await (await page.request.get('/api/workspace')).json();

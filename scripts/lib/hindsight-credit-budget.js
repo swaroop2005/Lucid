@@ -14,13 +14,16 @@ export class HindsightCreditBudget {
  }
  read(){return JSON.parse(readFileSync(this.file,'utf8'));}
  save(value){mkdirSync(dirname(this.file),{recursive:true});writeFileSync(this.file+'.tmp',JSON.stringify(value,null,2)+'\n',{mode:0o600});renameSync(this.file+'.tmp',this.file);}
- reserve({id,category,operation,reservedUSD,limits}){
+ reserve({id,category,operation,reservedUSD,limits,reservationCeilingUSD}){
   return this.update(ledger=>{
   if(ledger.stopped)throw new Error('Hindsight dispatch is stopped: '+ledger.stopped.reason);
   if(!id||ledger.calls.some(c=>c.id===id))throw new Error('Operation already reserved or missing identity; no automatic retry.');
   if(operation==='investigation-audit'&&(!limits?.investigationId||ledger.calls.some(c=>c.operation===operation&&c.limits?.investigationId===limits.investigationId)))throw new Error('Evidence audit already reserved or missing investigation identity; no automatic retry.');
+  if(operation==='learning-retain'&&(!limits?.closeoutId||ledger.calls.some(c=>c.operation===operation&&c.limits?.closeoutId===limits.closeoutId)))throw new Error('Learning write already reserved or missing closeout identity; no automatic retry.');
+  if(operation==='workspace-retain'&&(!limits?.documentId||ledger.calls.some(c=>c.operation===operation&&c.limits?.documentId===limits.documentId)))throw new Error('Archive document already reserved or missing identity; no automatic retry.');
   if(!Object.hasOwn(ledger.categoryCaps,category)||!Number.isFinite(reservedUSD)||reservedUSD<0||(reservedUSD===0&&category!=='metadata'))throw new Error('Invalid budget category or reservation.');
   const total=ledger.calls.reduce((n,c)=>n+c.reservedUSD,0),categoryTotal=ledger.calls.filter(c=>c.category===category).reduce((n,c)=>n+c.reservedUSD,0);
+  if(reservationCeilingUSD!==undefined&&(!Number.isFinite(reservationCeilingUSD)||reservationCeilingUSD<0||total+reservedUSD>reservationCeilingUSD+1e-9))throw new Error('Experiment reservation ceiling would be exceeded.');
   if(total+reservedUSD>ledger.capUSD-ledger.unallocatedSafetyUSD+1e-9||categoryTotal+reservedUSD>ledger.categoryCaps[category]+1e-9)throw new Error('Hindsight budget or protected category would be exceeded.');
   if(category==='metadata'&&ledger.calls.filter(c=>c.category==='metadata').length>=ledger.maxMetadataOperations)throw new Error('Metadata operation limit reached.');
   ledger.calls.push({id,category,operation,reservedUSD,limits,at:new Date().toISOString(),status:'reserved'});return id;});

@@ -1,15 +1,15 @@
 # Setup
 
-## Requirements and local installation
+## Local installation
 
-Use Node.js **22.13 or newer**. Release preparation was tested with **Node.js 22.22.1 and npm 9.2.0**. The server uses the built-in `node:sqlite` API; an older runtime is not sufficient. Install npm dependencies from the committed lockfile:
+Use Node.js **22.13 or newer**, npm and a supported browser. The server uses built-in `node:sqlite`. Run from the repository root:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:4317**. The server binds to loopback. Default preparation uses local templates and keyword retrieval; it does not call an AI provider.
+Open **http://127.0.0.1:4317**. First startup creates nine reconstructed public-source fixture cases. You can inspect and edit local records; normal investigation preparation requires a configured Hindsight connection and explicit matching allowance. Only the isolated test server enables offline rehearsal. Source-dependent panels can be empty until their excluded private material is supplied.
 
 For a built local run:
 
@@ -18,11 +18,9 @@ npm run build
 npm start
 ```
 
-Run these commands from the repository root so relative data, static assets and configuration paths resolve correctly. Stop the server before replacing or restoring its local database.
+The application binds to loopback and has no user authentication. Do not expose it publicly. Stop the server before replacing or restoring its database outside the guarded recovery workflow.
 
-First startup creates nine reconstructed public-source fixture cases and their anonymous demonstration records. They are not a transferred operational database. Downloaded historical reports, the full demo-evidence snapshot, full discussion downloads, the previously prepared knowledge library, official-source retention proofs and cached versioned documents are excluded from the public package. Small authored incident-study and corpus-expansion fixtures are included; they do not constitute the downloaded corpus. Source-dependent panels can be empty or show unavailable evidence until the required local material is supplied.
-
-## Checks
+## Development checks
 
 ```sh
 npm test
@@ -32,102 +30,97 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The browser suite starts an isolated local test server and separate fixture databases. It must not reuse a running production workspace or private credentials. The configuration uses the bundled Chromium browser. Some Linux systems also need its system libraries; `npx playwright install --with-deps chromium` installs them where supported and can require administrator privileges. Dependency and browser installation may download software; that is separate from paid AI-provider use.
+Browser tests create an isolated server and fixture databases, use bundled Chromium and fake provider responses, and must not reuse private settings. Some Linux systems need browser system libraries; `npx playwright install --with-deps chromium` may require administrator privileges. These downloads are separate from paid AI use.
 
-Some archival/evaluation utilities rely on private or excluded source artifacts. They are not setup steps. Do not run historical live-evaluation, bulk-ingestion or provider scripts merely to make an empty panel look populated.
+Do not run archival, ingestion or evaluation utilities merely to populate an empty panel. The full report corpus, previous 247-article library, downloaded discussions, official-source proofs and versioned-document cache are excluded. Small authored/synthetic research fixtures are included; they are not the downloaded corpus.
 
-## Local state
-
-The normal workspace and evidence files live under `.data/`. The workspace database contains cases, attempts, drafts, articles and private workflow records. The separate evidence database indexes collected source reports and notes. These files are local application state, not public repository assets.
-
-Common server overrides are:
+## Private local state
 
 | Variable | Purpose |
-|---|---|
-| `PORT` | Local HTTP port; default `4317` |
-| `DATA_FILE` | Workspace SQLite file |
-| `EVIDENCE_FILE` | Local evidence-index SQLite file |
-| `SETTINGS_FILE` | Private server-side Hindsight settings file |
-| `HINDSIGHT_CREDIT_LEDGER` | Private local spending-authorization ledger |
+| --- | --- |
+| `PORT` | Loopback HTTP port, default `4317` |
+| `DATA_FILE` | Workspace SQLite file, default `.data/lucid.sqlite` |
+| `EVIDENCE_FILE` | Separate evidence-index SQLite file |
+| `SETTINGS_FILE` | Private server-side Hindsight settings |
+| `HINDSIGHT_CREDIT_LEDGER` | Private spending-authorization/reservation ledger |
+| `CLOUD_READ_LEDGER` | Bounded metadata/recovery-read ledger, no paid-write authority |
 
-The optional `.env.example` supplies local defaults. If needed, copy it to a private `.env`, then edit it locally; do not commit the result. The default ledger filename includes an older numeric label, but its name grants no allowance.
+Copy `.env.example` to a private `.env` if overrides are needed. Runtime/configuration/authorization commands load it; the private-library command takes explicit paths. The legacy numeric label in the default spending-ledger filename grants no allowance.
 
-Keep private databases, settings, handoff packages, output traces and authorization ledgers outside version control. Do not place real API keys in a checked-in configuration file or paste them into a shell command that will be retained in history. Back up local state before intentionally replacing it.
+Keep databases, credentials, ledgers, raw traces, archives and `.data/recovery-backups/` out of version control. Do not put real API keys in checked-in files or shell arguments retained in history. Cloud archives contain operational content; gzip compression is not encryption.
 
-## Optional Hindsight configuration
+## Configure Hindsight
 
-1. Obtain your own Hindsight Cloud access and bank identifier.
-2. Open **Connections** and save your endpoint, bank identifier and API key.
-3. Review the local budget policy and explicitly authorize a bounded allowance through the supplied authorization tool before requesting paid work.
-4. In a case, select Hindsight, choose balanced or deep **search**, and explicitly request preparation.
+Save the intended endpoint, bank and key through **Connections**. The current endpoint is fixed to `https://api.hindsight.vectorize.io`. Settings are stored server-side with restrictive local file permissions; the browser receives status, not the key. A settings save grants no spending authority and does not itself perform a paid connection test.
 
-The current endpoint is fixed to `https://api.hindsight.vectorize.io`; arbitrary or self-hosted endpoints are not supported by this settings form. Settings are stored in a server-side file with restrictive file permissions where the operating system supports them. The browser receives configuration status, not the API key. Saving settings does not perform a paid connection test, start retention or grant spending authority.
-
-Each otherwise valid live investigation has a candidate-generation call and one mandatory audit call, plus optional Recall and bounded provenance reads. Both reasoning stages can incur charges. Search depth is retrieval effort; it does not select a stronger hosted model. The reviewed hosted configuration exposes no customer model selector.
-
-### Optional local credential configuration command
-
-The Connections screen is sufficient. For an initial command-line save, put the three values in a private `.env`: `HINDSIGHT_BASE_URL`, `HINDSIGHT_BANK` and `HINDSIGHT_API_KEY`. Then run:
+For initial command-line configuration, put `HINDSIGHT_BASE_URL`, `HINDSIGHT_BANK` and `HINDSIGHT_API_KEY` into a private `.env`, then run:
 
 ```sh
 npm run cloud:configure
 ```
 
-This reads the private environment file and saves the server-side settings. It makes **zero provider calls**, refuses placeholder values and refuses to overwrite an existing connection. Review later changes in Connections. These environment variables alone do not configure the current UI workflow; the explicit save is required. Do not enable legacy provider-mode environment settings as a shortcut.
+This writes local settings with **zero provider calls**, rejects placeholders and refuses to overwrite an existing connection. Those environment variables alone do not configure the application workflow. Review later changes in Connections.
 
-For a new setup, use a separate, bank-restricted, expiring key where your provider role permits it. Provider keys default to broader access unless you choose restrictions; a bank restriction is **not** a read-only restriction. See the provider's [API-key documentation](https://docs.hindsight.vectorize.io/api-keys/). Existing imported scope proofs have a stricter connection-binding limitation described below.
+Choose a bank-restricted key and appropriate expiration where your provider permissions allow. A bank restriction does not make a key read-only. This application can perform paid reasoning and retention writes after explicit local authorization. It does not restrict a copied key used elsewhere.
 
-### Explicit new spending authorization
+## Deliberately authorize an allowance
 
-Start the app once to initialize its workspace identity, or import a private library first. Save the intended connection, then deliberately choose a cap. For example:
+Initialize the workspace by starting the app once. For recovery, recover the intended workspace identity before creating a new paid allowance. Save the intended connection, choose a cap deliberately, and run for example:
 
 ```sh
 npm run cloud:authorize -- --cap-usd 10 --acknowledge-paid-usage
 ```
 
-This example creates a **new** local $10 dispatch allowance; it does not purchase credit or verify a provider balance. The command accepts caps from $1 to $50, binds the ledger to the current workspace and exact saved connection, and refuses to overwrite an existing ledger. It reserves 40% for ingestion, 40% for evaluation/investigation, 10% for derived work and 10% as a buffer. It makes **zero provider calls**. Do not delete or reset a ledger to erase uncertain operations or imply renewed authorization.
+This example creates a **new $10 local dispatch allowance**. It makes zero provider calls, buys no credits and does not verify account balance. Caps from $1 to $50 are supported. The ledger binds to the current workspace and exact saved connection and refuses to overwrite an existing ledger. Different workspace identity or key invalidates that authority.
 
-A local ledger is a dispatch safeguard, not a provider-enforced spending limit, proof of available balance or least-privilege restriction on the API key. A copied key could be used outside this application. Cloud write paths exist for retention and derived-aid generation; an uncertain provider outcome can still incur cost. No automatic recharge or hidden retry is part of setup.
+The fixed allocation is deliberate: **40% ingestion, 40% investigation/evaluation, 10% derived aids, 10% protected buffer**. With the $10 example, ingestion has $4, investigation $4, derived work $1 and the buffer $1. Operational checkpoint documents and approved-outcome learning share the ingestion category. A whole checkpoint must fit both remaining overall and ingestion allowance before paid work begins; available allowance in another category is not silently borrowed. Choose a cap suitable for the displayed estimate and planned learning, rather than assuming the full cap can all be used for storage. The public runtime accepts these portable explicit caps.
 
-## Existing bank versus new workspace
+Reservations are conservative application estimates, not provider invoices, a verified balance or a provider-enforced spending limit. Uncertain dispatched operations keep their reservations. Do not delete, reset or copy a ledger to erase uncertainty or imply renewed authority. Setup does not recharge or purchase credit.
 
-Connecting a bank does not list and reconstruct the old local knowledge collection. Investigation eligibility depends on the canonical local article or document, its revision/hash, workspace identity, exact retained-document identity, connection identity and verified scope. Cloud facts alone do not supply that complete state.
+## What can run automatically
 
-To continue an existing collection, obtain a **private local metadata handoff** from its authorized owner. Keep its integrity checksum and source identities together. The destination must retain the intended workspace/source identity and establish its own matching connection and local authorization. The current connection identity includes a hash of the exact API key, bank and URL. A different key—even a new key for the same bank—makes imported scope proofs unverified. Automatic rebinding/reverification is not implemented. Do not share credentials casually to avoid this limitation; choose a controlled private continuation or a new bank/library workflow. Do not manually mark content retained, change hashes or invent scope proofs to bypass a mismatch.
+Once authority and configuration match, a **successful committed operational save** can queue a Cloud checkpoint. The queue debounces/coalesces edits, checks the whole-save estimate and owner, publishes a bounded batch and allows at most one bounded follow-up. More than 32 missing documents, insufficient allowance, changed ownership or unresolved history leave the local cache pending. An uncertain write is checked read-only and never automatically resent. A subsequent explicit save or manual reconciliation may be needed.
 
-A new workspace and your own new bank begin without the previous 247-article collection. Creating cases or approving local articles does not automatically upload them. Standalone paid connection tests and legacy manual retain/retry/retire buttons are paused; use only the explicit supported workflow. Private handoff does not transfer provider credentials, available balance or permission to spend.
+Starting the app, constructing the checkpoint queue or polling Connections does **not** start an operational checkpoint. The Connections poll reads local status/allowance only; it does not call the provider.
 
-### Private library export and import
+Approved-knowledge learning is different: explicit review approval queues a closeout. A previously approved closeout may resume at startup or after a settings change when existing authority matches. Generated drafts and failed suggestions are excluded. Consequently, an existing authorized workspace can make provider calls on boot for previously approved learning. “No checkpoint on boot” is not a global no-provider-call guarantee.
 
-Use the following commands only for a trusted, authorized private handoff. The paths below are relative examples; `.data/private-handoff/` is private material and must stay outside version control. Stop the destination application before import.
+## Continue an existing workspace
 
-On the source installation, export from the existing workspace without modifying it:
+Connecting a bank does not automatically reconstruct the local collection. Extracted facts alone cannot recover canonical articles, drafts, cases or revision identity. If the bank contains a complete verified operational archive, use **Connections → Cloud workspace**:
+
+1. Enter the intended workspace and owner identities and request a recovery preview. This reads and validates the complete bounded parent chain and original chunks; it does not replace local state.
+2. Review counts and identities. Explicitly confirm replacement to apply the exact preview. Apply repeats reads, rejects drift and saves a private backup before replacement.
+3. Request source reverification for recovered articles/documents. Old eligibility proofs are removed. Exact original text, scope metadata and nonzero facts must match before a source becomes eligible on the destination connection.
+4. Create new paid authority for that recovered workspace only if paid use is intended. Read-only recovery does not grant retention or investigation allowance.
+
+The current connection identity includes a hash of URL, bank and exact key. A new key requires fresh source verification and matching new authorization, even for the same bank. Do not invent proof fields or share credentials to avoid this boundary.
+
+One cooperating editor is supported. A different owner may recover a read-only cache; operational editing/publication requires the active owner or explicit checkpoint handoff. This is not an authenticated lease or distributed lock. See [Cloud checkpoints](CLOUD-WORKSPACE.md) for limits and conflict behavior. This repository does not claim that any particular live bank has completed migration.
+
+## Optional private library handoff
+
+If no operational archive exists, the separate library utility can move canonical library metadata privately. Stop the destination app before import. On the source installation:
 
 ```sh
 npm run library -- export --workspace .data/lucid.sqlite --file .data/private-handoff/library.json --acknowledge-private-data
 ```
 
-The command opens the source SQLite file read-only and writes a new private file exclusively. Its allowlist contains `workspaceId`, `articles`, `officialDocuments` and `historicalKnowledgeAssociations`. It excludes top-level cases, companies, credentials, budgets, raw report corpus and execution traces. Article objects and their nested provenance are preserved, so the owner must still inspect the bundle for private content before transferring it. A checksum detects accidental changes; it does not authenticate an untrusted sender or establish semantic safety.
+The source database is read-only. The new private bundle contains only `workspaceId`, `articles`, `officialDocuments` and `historicalKnowledgeAssociations`. Top-level cases, companies, credentials, budgets and traces are excluded. Nested article provenance remains intact and may be private: review before transfer. The checksum detects accidental changes; it does not authenticate the sender or prove semantic safety.
 
-On the destination, import into a **nonexistent** workspace database path:
+Import into a nonexistent database path:
 
 ```sh
 npm run library -- import --workspace .data/library-workspace.sqlite --file .data/private-handoff/library.json --acknowledge-private-data
 ```
 
-The import refuses an existing destination, verifies the bundle checksum/shape and duplicate identities, creates the normal nine fresh fixture cases, and preserves the library objects and workspace identity. It makes no provider calls, performs no fresh Cloud verification and imports no operational cases, credentials or budget. Configure `DATA_FILE=.data/library-workspace.sqlite` in the destination's private `.env` before starting that workspace.
+Import refuses an existing destination, checks identities/checksum, preserves the canonical library/workspace identity and creates the nine normal fixture cases. It makes no provider calls and performs no fresh Cloud verification. Set private `DATA_FILE=.data/library-workspace.sqlite` before starting it. Save credentials separately and deliberately create matching paid authority if needed. The evidence index and full discussions are not transferred. This library-only path does not preserve operational cases or substitute for complete Cloud recovery.
 
-The `library` command takes explicit paths and does not load `.env`; the runtime/configuration/authorization commands do. Save the intended server-side connection separately and create a new allowance with `cloud:authorize` only if you intend paid use. Known imported scopes are checked again when used, including the exact credential-connection binding. The local evidence database is not part of this bundle; full historical discussions can remain unavailable even when canonical article metadata is present.
+## Troubleshooting
 
-An empty library/new bank requires a separate explicit curation and bounded retention workflow with reviewed source files. This release does not provide a one-click reconstruction of the excluded 247-article library from Cloud.
-
-## Exposure and troubleshooting
-
-There is no user login, multi-user authorization or production tenant boundary. Local host/origin checks and a request header reduce accidental cross-site actions; they do not turn this into an authenticated server. Keep it bound to loopback, restrict access to the host account and do not expose it publicly.
-
-- **Unsupported SQLite/runtime error:** confirm a compatible Node version and reinstall with `npm ci` after changing runtimes.
-- **Port already in use:** stop the other local instance or choose a different `PORT`.
-- **No historical reports or cached documentation:** those downloads are excluded; an empty index is expected on a fresh clone.
-- **Saved connection but no paid action:** settings are not budget authorization. Check the separate local allowance and connection/workspace identity.
-- **Scope, source or connection mismatch:** preserve the files and inspect the handoff/verification record. Do not retry a write blindly.
-- **AI verification failure:** existing drafts remain unchanged. The final live audit evaluation did not demonstrate reliable delivered output; see [quality](QUALITY.md). Repeated retries are not a setup fix.
+- **SQLite errors:** verify the Node version and reinstall dependencies after changing runtime.
+- **Empty historical/source panels:** excluded corpora/caches are not downloaded during setup.
+- **Configured but preparation unavailable:** check matching workspace/connection allowance; settings alone grant none.
+- **Pending Cloud save:** inspect whole-save estimate, ingestion allowance, recorded owner and exact status. Pending is local success without verified Cloud completion.
+- **Uncertain write or identity mismatch:** preserve the journal and reconcile read-only; do not blindly resend or alter proof fields.
+- **AI verification failure:** earlier drafts stay intact. Repeated retries are not a setup fix; see [quality](QUALITY.md).

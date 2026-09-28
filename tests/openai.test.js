@@ -42,7 +42,7 @@ test('oversize evidence is omitted whole and unknown or unattributed citations f
 });
 
 test('wrong-executor and wrong-hosting references are excluded while unknown context stays explicit',()=>{
- const c={...initialState().cases[0],executor:'Docker',hosting:'GitLab.com'};
+ const c={...initialState().cases[0],title:'Artifact upload returns HTTP413',executor:'Docker',hosting:'GitLab.com'};
  const refs=[{id:'REF-02',executor:'Kubernetes',stage:'Environment setup',applicability:'Different executor; reference only',summary:'Inspect Kubernetes API latency.'},{id:'REF-18',executor:'Any',hosting:'Self-managed',summary:'Inspect server settings.'}];
  const input=investigationInput(c,[],refs);assert.equal(input.evidence.length,0);assert.equal(input.selection.omitted.length,2);
  const unknown=investigationInput({...c,executor:'Unknown',hosting:'Unknown'},[],refs);assert.equal(unknown.evidence[0].executor,'Kubernetes');assert.equal(unknown.evidence[1].hosting,'Self-managed');

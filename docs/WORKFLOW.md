@@ -1,49 +1,34 @@
-# Workflow
+# Case-to-knowledge workflow
 
-## Start from a report
+## Capture and investigate
 
-On a fresh install, the nine cases are reconstructed public-source exercises. Open one to explore the interface, or create a local case with your own report. Record the failing component, stage, executor, hosting and known server/Runner/chart versions separately. Leave unknown fields unknown.
+1. Open or create a case. Record the environment, exact known versions, symptoms, failed attempts and current observations. Unknown values remain unknown.
+2. Save authored edits. Local persistence succeeds independently of Cloud completion. A committed operational change queues a bounded checkpoint when Cloud configuration, ownership and existing allowance permit it. Connections shows pending state and the whole-save estimate.
+3. Configure the intended Hindsight connection and explicit allowance before preparation. Normal runtime requires Cloud; the offline rehearsal is an isolated test feature.
+4. Request preparation with the intended memory mode and retrieval depth. Historical knowledge and exact-version official sources remain separate from current observations. Deep search does not choose a stronger hosted model.
+5. Review the delivered result. A private candidate undergoes the mandatory evidence audit. Invalid results are withheld and prior drafts stay intact. The runtime protocol is still `audit-v1`; the experimental semantic-plan protocol is not promoted.
+6. Edit the draft and decide on next diagnostic steps. The application does not send the response or execute proposed fixes. Record actual attempted steps and resulting observations separately.
 
-Record every attempted step with its actual result and evidence. A missing attempt record does not mean the action was never performed. A historical workaround does not prove the current incident has the same cause.
+The latest developmental outputs were not reliable: all five delivered outputs in eight attempts contained material errors. Use [quality findings](QUALITY.md) when judging what an accepted result means.
 
-## Prepare locally
+## Resolve, review and learn
 
-Keep Hindsight disabled in investigation options to use local preparation. This produces editable templates and local keyword matches without a paid AI call. Inspect the sources, record the next observation and revise the text yourself. Drafts are saved locally; the app does not send messages or execute commands.
+Record the observed outcome and its supporting evidence. A resolution draft is not automatically trusted knowledge. Explicitly approve the resulting article only after checking its cause, fix, verification, version scope and provenance.
 
-Downloaded source reports and versioned-document caches are not bundled. An empty related-report panel or unavailable exact source is expected in a fresh public install. Selecting a source does not confirm its outcome.
+Approval queues a deterministic learning closeout for that article revision. With matching authority, the worker automatically retains the approved outcome and verifies the exact original content. There is no separate manual upload step for this reviewed-outcome path. An already approved queued closeout can resume at startup or after connection settings change.
 
-## Optional AI investigation
+The article shows **pending**, **processing**, **unverified** or **succeeded** separately from operational checkpoint status. A pending or uncertain result is not successful learning. Status checks reconcile the recorded attempt and never blindly resend an uncertain write. Editing the approved article creates a different revision; old proof cannot authorize the changed content.
 
-After configuring a connection and separately authorizing a local budget, explicitly choose Hindsight preparation. Balanced and deep are search-depth choices, not hosted model choices.
+Generated drafts, failed suggestions and model claims without approved outcome evidence do not become knowledge. Bulk historical curation remains a separate explicit reviewed batch workflow. Derived aids remain unreviewed and are excluded from case investigation evidence.
 
-The workflow generates a private candidate and performs one mandatory evidence audit. The current delivery mode contains only labeled reported-case quotations, conditional hypotheses and diagnostic questions with expected observations and decision branches. The candidate's suggested fixes are withheld even when the audit considers them supported.
+## Save, hand off and recover
 
-The source panel distinguishes what was selected, cited, omitted or rejected. It shows exact article/document revisions and source ancestry. Correct source membership does not prove the generated reasoning follows from the source. Review every question and do not treat the preview as a verified resolution.
+Operational checkpoints preserve canonical cases, authored drafts, tasks, events and library records. They use a scope separate from approved knowledge; storing a draft in a recoverable archive does not make it investigation evidence.
 
-If the candidate or audit fails validation, existing drafts remain unchanged. There is no automatic retry or alternate provider. The final measured workflow delivered no accepted results in its twelve-attempt audit pilot or four-attempt fresh paired check; see [quality](QUALITY.md). Do not repeatedly spend credit expecting this limitation to disappear.
+The queue coalesces committed saves, checks the entire estimated batch against existing total and ingestion allowance, and limits new documents and follow-up work. Reservations are conservative estimates, not billed charges. Startup and local status polling alone do not start operational checkpoint calls; this does not disable the separate approved-learning resume path.
 
-## Record outcomes and reuse knowledge
+Manual staging/publication remains available for reconciliation or explicit owner handoff. Another recorded owner disables publication and blocks operational edits. One cooperating editor is supported; handoff is not a distributed locking mechanism.
 
-Record a resolution only when you have actual outcome evidence. Separate the action that helped, the explanation, the verification and remaining limitations. A reported workaround can remain useful while its cause stays unknown.
+On a destination installation, save the intended connection and provide the existing workspace/owner identities. Preview verifies complete Cloud originals and returns counts. Apply requires explicit replacement confirmation, repeats the reads, checks drift and saves a private backup first. Recovered knowledge stays ineligible until fresh source reverification matches its exact identity, original text and nonzero facts on the destination connection. A new paid allowance must be deliberately authorized for the recovered workspace before later paid work.
 
-For ordinary local case knowledge, the explicit review workflow can create an article. This does not automatically upload it to Cloud. Imported historical articles retain their AI/source-review basis and are immutable. Additional reviewed reports can be linked through separate associations without changing the published payload, citations or retained packet.
-
-Before reuse, check executor, hosting, version, failure stage and prior failed attempts. A narrative match still needs review. A mismatch excludes that article; it does not rule out the whole underlying mechanism in the current case.
-
-## Official documents
-
-Official DOC records are separate from experiential articles. Each has an exact source release, URL, raw source/section hashes and a complete bounded section. Unknown or mismatched component versions make the document ineligible. Do not assume current web documentation describes a historical installation.
-
-Cloud verification checks the retained bytes and scope, not whether the guidance solves this case. The public package does not supply the previous five-document retained collection or its local proofs.
-
-## Derived aids
-
-When verified local source metadata exists, choose two or three compatible articles and stage a local derived-aid plan. Staging does not call Cloud. Create, content check and refresh are separate explicit actions; reading generated content can incur charges.
-
-A resulting snapshot remains an unreviewed aid with source provenance and current/stale status. It is not merged into immutable articles or automatically used by investigations. No scheduled refresh is enabled by this workflow.
-
-## Move or back up a workspace
-
-Treat the local database, canonical source metadata and retention/scope identities as a coherent private state set. Keep credentials and spending authority separate. Use the supported private handoff tools described in [setup](SETUP.md); do not copy a working directory into a public repository.
-
-Pointing a new checkout at an existing bank does not restore local article bodies, workspace IDs, exact revision mappings or source review records. A new bank and fresh workspace start without the prepared 247-article library. Never invent successful-retention flags to bridge that gap.
+A bank containing only extracted facts or historical knowledge documents is not a full operational backup. This repository does not claim a particular live migration succeeded. See [Cloud checkpoints and recovery](CLOUD-WORKSPACE.md) for bounds and [setup](SETUP.md) for private handoff alternatives.

@@ -27,7 +27,21 @@ export const references=[
 const stop=new Set('the and that this with from for are was has have our can not unknown'.split(' '));
 export function tokens(value){return [...new Set(String(value).toLowerCase().replace(/[^a-z0-9]+/g,' ').split(' ').filter(t=>t.length>2&&!stop.has(t)).map(t=>t.replace(/s$/,'')))];}
 export function rankDocuments(query,documents,textOf){const terms=tokens(query);return documents.map(item=>{const words=tokens(textOf(item));const matched=terms.filter(t=>words.includes(t));const score=matched.reduce((sum,t)=>sum+Math.log(1+documents.length/(1+documents.filter(d=>tokens(textOf(d)).includes(t)).length)),0);return {...item,retrieval:{score,matched}};}).filter(d=>d.retrieval.score>0).sort((a,b)=>b.retrieval.score-a.retrieval.score);}
-export function referenceSearch(query,executor='Unknown'){const generic=new Set('runner job help issue relevant earlier another team seeing unexpected report experience current problem work need fail failed failure gitlab pipeline pod'.split(' '));const technical=tokens(query).filter(t=>!generic.has(t)).join(' ');return rankDocuments(technical,references,r=>r.keywords).map(r=>({...r,applicability:r.executor==='Any'||executor==='Unknown'||r.executor===executor?'Review environment before applying':'Different executor; reference only'})).slice(0,4);}
+// High-frequency words such as configuration, user and helper must not select a
+// guide about a different subsystem. These are topic gates, not cause inference.
+const referenceTopics={
+ 'REF-04':/\b(?:dns|resolve|resolver|resolution|hostname|musl)\b/i,
+ 'REF-05':/(?:permission denied|\b(?:ownership|chmod|chown|uid|gid)\b)/i,
+ 'REF-06':/(?:no files|no matching|missing files|artifact.{0,40}(?:path|generat)|(?:path|generat).{0,40}artifact)/i,
+ 'REF-08':/(?:x509|certificate|\btls\b|\bca\b|trust store|self.signed)/i,
+ 'REF-09':/(?:bashrc|bash_logout|clear_console|\bprofile\b|login.shell|shell.initiali|shell.prepar)/i,
+ 'REF-11':/(?:ci_job_token|allowlist|cross.project|job.token)/i,
+ 'REF-13':/\b(?:disk|space|inode|storage|volumes?|mounts?|overlay2|compose)\b|service.container/i,
+ 'REF-15':/\b(?:ssh|scp|publickey|known_hosts)\b|ssh-agent/i,
+ 'REF-18':/(?:^|[^0-9])413(?:[^0-9]|$)|entity too large|artifact.{0,30}(?:size|limit)|(?:size|limit).{0,30}artifact/i,
+ 'REF-19':/(?:^|[^0-9])413(?:[^0-9]|$)|entity too large|client_max_body_size|proxyBodySize|(?:nginx|request|body).{0,25}(?:size|limit)/i,
+};
+export function referenceSearch(query,executor='Unknown'){const generic=new Set('runner job help issue relevant earlier another team seeing unexpected report experience current problem work need fail failed failure gitlab pipeline pod'.split(' '));const technical=tokens(query).filter(t=>!generic.has(t)).join(' ');return rankDocuments(technical,references,r=>r.keywords).filter(r=>!referenceTopics[r.id]||referenceTopics[r.id].test(query)).map(r=>({...r,applicability:r.executor==='Any'||executor==='Unknown'||r.executor===executor?'Review environment before applying':'Different executor; reference only'})).slice(0,4);}
 
 // Reference titles and keyword overlap are not sufficient applicability evidence.
 export function referenceExclusion(c,r){
@@ -35,5 +49,6 @@ export function referenceExclusion(c,r){
  if(r.hosting&&c.hosting&&c.hosting!=='Unknown'&&r.hosting!==c.hosting)return 'Documentation requires a different hosting context';
  const report=`${c.title||''} ${c.description||''}`;
  if(r.id==='REF-06'&&/(?:(?:^|[^0-9])413(?:[^0-9]|$)|entity too large|too large archive)/i.test(report)&&!/(?:no files to upload|no matching files|found 0 matching)/i.test(report))return 'Missing-file guidance does not explain the observed HTTP413 upload rejection';
+ if(referenceTopics[r.id]&&!referenceTopics[r.id].test(report))return 'Reference topic is not evidenced by the reported problem; shared generic words are insufficient';
  return null;
 }

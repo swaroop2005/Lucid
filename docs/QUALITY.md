@@ -2,50 +2,52 @@
 
 ## Current conclusion
 
-**Reliable full AI investigation and resolution remain unresolved.** The code can enforce source identity, bounded dispatch and fail-closed validation, but those controls do not prove that generated advice is correct or useful.
+**Reliable full AI investigation and resolution remain unresolved.** Source identity, bounded dispatch, exact readback and structured validation are useful controls; they do not establish semantic accuracy. The normal runtime still uses `audit-v1`. The new semantic-plan experiment has not been promoted.
 
-The final measured safety workflow withholds original candidate recommendations and attempts to deliver only diagnostic questions and conditional observations. It is an interim guardrail, not a completed solution to the accuracy problem.
+## Measured live results
 
-## Final live delivery results
+| Run | Design | Result |
+| --- | --- | --- |
+| Earlier audit-only pilot | Twelve immutable candidates: ten known material-error outputs and two high-scoring controls; one audit each | **0/12 delivered**; all failed structured-audit validation. |
+| Earlier fresh paired check | Two locally new real reports, memory and empty-memory arms | **0/4 delivered**; audit or candidate verification rejected every attempt. |
+| Latest developmental semantic-plan replay | Four previously used inputs, two arms each | **5/8 delivered**, three rejected. All five delivered outputs contained material errors. Delivered-output mean **3.4/10**. |
+| Prepared fresh cohort | Fifty newly prepared cases, intended 100 paired arms | **Not executed.** No success rate or quality improvement can be inferred. |
 
-| Run | Design | Delivered result |
-|---|---|---|
-| Audit-only pilot | Twelve immutable saved candidates: ten earlier material-error outputs and two high-scoring controls; one audit each, no candidate regeneration | **0/12**. All failed structured-audit validation. |
-| Fresh paired check | Two separately frozen local-new real reports, each with memory and empty-memory arms; same local references/search depth per pair | **0/4**. One pair failed audit validation; the other failed candidate verification before an audit was dispatched. |
+The newest review was source-aware AI grading, with arm labels visible; it was not blind human verification. Previously used replay inputs make it a developmental comparison, not an independent benchmark. Only two input pairs delivered both arms: their memory-minus-empty score differences were +1 and −2. The partial paired results do not establish a memory benefit. The 3.4/10 average describes delivered outputs only; rejected attempts are not silently counted as successful answers.
 
-These are operational delivery outcomes, not semantic accuracy scores. Withholding invalid output avoids presenting it as advice, but withholding every attempt also means the system did not demonstrate useful accepted output. The saved-candidate pilot deliberately included known failures and is not an unbiased benchmark. “Local-new” means newly introduced to that evaluation, not proven absent from model training.
+The older saved-candidate pilot deliberately included known failures and was not an unbiased benchmark. “Locally new” means newly introduced to that run, not proven absent from model training. Delivery counts measure whether the application accepted output; they are not semantic correctness rates.
 
-Earlier prompt-only source-authority changes also failed to establish reliable grounding. Known error classes included carrying a historical workaround into a current prescription, inferring configuration behavior from insufficient observations, and inventing command syntax. Correct citations and exact retained-source ancestry did not prevent those errors.
-
-The public repository excludes private run archives and operational state. This summary does not suggest that the excluded artifacts or prepared source library will appear after installation.
+Observed failure classes include historical workarounds becoming current prescriptions, unsupported causal or configuration inferences, and invented command syntax. Correct citations and exact source ancestry did not prevent these errors. Private gold labels, raw provider responses and operational run archives are excluded from this repository; this document reports aggregate findings only.
 
 ## What the implementation checks
 
-- Current workspace/connection identity and exact retained source revision, content hash and tags.
-- Whole bounded case/evidence context, including failed attempts and planned history.
-- Canonical citation identity and complete bounded fact/observation ancestry.
-- Exact source, case and candidate quotation/path membership in the audit.
-- A narrow generated-prose check for executable syntax, explicit configuration-change requests and overconfident exclusions.
-- Private candidate withholding, even when the auditor labels a prescription supported.
-- Durable local spending reservations, no hidden retry and preservation of previous drafts on failure.
+- Exact workspace/connection identity, canonical source revision, retained-document identity, original content and scope tags.
+- Bounded case/evidence context and citation/fact ancestry.
+- Case, source and candidate quotation/path membership in the audit.
+- Private candidate withholding and narrow guards on generated executable or prescriptive prose.
+- Durable local reservations, bounded operations, uncertain-write journals and preservation of previous drafts on failure.
+- Operational archive chunk/manifest hashes, complete parent history, ownership conflicts, local drift and explicit replacement confirmation.
+- Explicitly approved outcomes for learning; drafts, failed suggestions and operational archive chunks are excluded from approved-knowledge retrieval.
 
-Quotation membership is not entailment. A second AI assessment can share the first model's error, miss a risky sentence or misunderstand a prerequisite. The language guard can miss paraphrases and reject benign wording. It is not a semantic safety proof. A valid structured response is not human approval, reproduction or a confirmed current cause.
+Quotation membership is not entailment. An auditor can share the candidate model's mistakes. A valid response is neither human approval nor a reproduced current cause. Archive integrity proves faithful storage of content, not that the content is accurate or suitable as advice.
 
-## Software tests versus answer quality
+## Software tests and migration evidence
 
-The preceding implementation checkpoint reported **245 unit tests**, **21 browser tests**, lint and build passing, plus a focused rerun of the audit-notice browser test. Those counts describe that checkpoint, not an automatically rerun guarantee for every fresh checkout. Public-export portability changes can alter test selection and counts; run the checked-in commands for the current revision.
+Unit and browser fixtures exercise isolation, source scope, immutable identity, recovery, allowance checks, failure handling and interface state. They make no real paid provider calls. Run `npm test`, `npm run lint`, `npm run build` and `npm run test:e2e` for the checked-out revision; test counts and outcomes belong to that exact run.
 
-Tests use isolated stores and fake SDK responses to exercise scope, privacy, immutability, failure handling and interface behavior. They do not demonstrate hosted-model obedience. The installed dependency lockfile, runtime version and actual run output determine reproducibility.
+Responsive/browser smoke checks cover selected structural accessibility rules and viewport bounds. They are not a full accessibility certification or a screen-reader/contrast audit. A fake-provider recovery test does not prove a particular live bank was migrated. A real migration requires independently recorded original-text readback and recovery verification; no such success is claimed by this public package.
 
-## Other limits
+## Practical limits
 
-- Local, unauthenticated prototype; no public deployment or tenant isolation guarantee.
-- Hindsight is the only active AI integration. The reviewed hosted configuration exposes no customer model selector; deep search does not mean a stronger model.
-- A fresh clone has nine public reconstructed fixture cases, not the earlier private workspace or its 247-article library.
-- Cloud facts alone cannot rebuild the required canonical local source metadata and exact scope identities.
-- Unknown versions remain unknown; historical success is not a general affected-version range.
-- The Cloud key is not constrained by this app to read-only or least-privilege use. Writes and paid calls are possible through explicitly authorized workflows.
-- A local allowance is a conservative dispatch reservation, not a provider invoice or hard Cloud cap. No prior authority, credits or balances are transferred with the repository.
-- Manual derived aids remain unreviewed even after source verification; they are excluded from case investigation context.
+- Local unauthenticated prototype, with one cooperating editor and no public tenant isolation.
+- Hindsight is the active AI provider. Search depth changes retrieval effort, not a customer-selected hosted model.
+- Normal preparation requires Cloud configuration and matching explicit allowance; local records can remain pending without them.
+- Automatic checkpoints require the complete batch to fit total and ingestion allowances. They are bounded and can remain pending after uncertainty or limits.
+- Approved learning can resume previously queued work at startup. Operational checkpoint construction/startup and local status polling do not initiate provider work.
+- Connection identity includes the key. Recovered sources need fresh verification before becoming eligible under a different connection.
+- Compression is not encryption. Operational archives and private recovery backups may contain sensitive case content.
+- Local reservations are not billed charges, provider balances or hosted spending limits. Repository setup transfers no prior authority or credits.
+- Owner IDs and fork detection are not authenticated leases or compare-and-swap; simultaneous uncoordinated writers are unsupported.
+- Manual derived aids remain unreviewed and excluded from case investigation context.
 
-Do not describe this release as a proven autonomous support resolver. Its useful current role is a local evidence workspace and a transparent testbed for stricter retrieval and review boundaries.
+Lucid is currently an evidence workspace and an investigation testbed. It is not a proven autonomous support resolver.

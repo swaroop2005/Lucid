@@ -1,17 +1,21 @@
 import {HindsightCreditBudget} from '../scripts/lib/hindsight-credit-budget.js';
 import {DomainError,hash} from './domain.js';
 import {verifiedArticleScope,investigationTagGroups} from './hindsight-scope.js';
+import {validateLearningAuthorization} from './learning-authorization.js';
+import {validateWorkspaceAuthorization} from './workspace-authorization.js';
 
 // This opens only an already-authorized ledger. Starting the app never creates credit authority.
-export function createInvestigationAuthorizer({ledgerPath='work/hindsight-50-ledger.json',store,settings}={}){
+export function createInvestigationAuthorizer({ledgerPath='work/hindsight-50-ledger.json',store,settings,reservationCeilingUSD}={}){
  const ledger=new HindsightCreditBudget(ledgerPath);
- return async({id,investigationId,derivedId,kind,budget,connectionId,request})=>{
+ return async({id,investigationId,derivedId,closeoutId,workspaceId,bank,kind,budget,connectionId,request})=>{
   try{
    const authority=ledger.read(),secret=settings.read();
    const actualConnection=secret?hash([secret.baseUrl,secret.bank,hash(secret.apiKey)]):null;
-   if((!Number.isFinite(authority.capUSD)||authority.capUSD<=0||authority.capUSD>50)||authority.provider!=='Hindsight Cloud'||authority.connectionId!==connectionId||actualConnection!==connectionId||authority.workspaceId!==store.read().workspaceId)throw new Error('Credit authority does not match this workspace and connection.');
-   const kinds={'investigation-metadata':0,'investigation-recall':.05,'investigation-reflect':.10,'investigation-audit':.10,'investigation-provenance':0,'derived-create':.50,'derived-refresh':.50,'derived-read':.05,'derived-metadata':0,'derived-provenance':0},derived=kind?.startsWith('derived-');
-   if(!Object.hasOwn(kinds,kind)||(!derived&&!['mid','high'].includes(budget)))throw new Error('Unapproved Hindsight operation.');
+   if((!Number.isFinite(authority.capUSD)||authority.capUSD<1||authority.capUSD>50)||authority.provider!=='Hindsight Cloud'||authority.connectionId!==connectionId||actualConnection!==connectionId||authority.workspaceId!==store.read().workspaceId)throw new Error('Credit authority does not match this workspace and connection.');
+   const kinds={'investigation-metadata':0,'investigation-recall':.05,'investigation-reflect':.10,'investigation-audit':.10,'investigation-provenance':0,'derived-create':.50,'derived-refresh':.50,'derived-read':.05,'derived-metadata':0,'derived-provenance':0,'learning-policy-read':.05,'learning-retain':.15,'learning-metadata':0,'workspace-policy-read':.05,'workspace-retain':.15},derived=kind?.startsWith('derived-'),learning=kind?.startsWith('learning-'),workspace=kind?.startsWith('workspace-');
+   if(!Object.hasOwn(kinds,kind)||(!derived&&!learning&&!workspace&&!['mid','high'].includes(budget)))throw new Error('Unapproved Hindsight operation.');
+   if(learning)validateLearningAuthorization({state:store.read(),store,secret,connectionId,closeoutId,kind,request});
+   if(workspace){if(bank!==secret.bank)throw new Error('Archive bank differs from the authorized connection.');validateWorkspaceAuthorization({state:store.read(),connectionId,workspaceId,bank,kind,request});}
    if(derived){
     const state=store.read(),scope='lucid-workspace-'+state.workspaceId,snapshots=request?.sourceSnapshots,options=request?.options,trigger=options?.trigger;
     if(!/^lucid-derived-[a-f0-9-]{36}$/.test(derivedId||'')||!/^[a-f0-9]{64}$/.test(request?.planHash||'')||!Array.isArray(snapshots)||snapshots.length<2||snapshots.length>3||new Set(snapshots.map(s=>s.articleId)).size!==snapshots.length)throw new Error('Derived knowledge requires a frozen two or three source plan.');
@@ -26,7 +30,7 @@ export function createInvestigationAuthorizer({ledgerPath='work/hindsight-50-led
    }
    if(kind==='investigation-recall'&&(request.options?.maxTokens>4096||request.options?.maxChunkTokens>4096||request.options?.budget!==budget))throw new Error('Recall request exceeds approved bounds.');
    const reservedUSD=kinds[kind];
-   ledger.reserve({id,category:reservedUSD?(derived?'derived':'evaluation'):'metadata',operation:kind,reservedUSD,limits:{investigationId,derivedId,budget,requestHash:hash(request),connectionId}});
+   ledger.reserve({id,category:reservedUSD?(learning||workspace?'ingestion':derived?'derived':'evaluation'):'metadata',operation:kind,reservedUSD,reservationCeilingUSD,limits:{investigationId,derivedId,closeoutId,documentId:workspace?request.document?.docId:undefined,budget,requestHash:hash(request),connectionId}});
    ledger.mark(id,'dispatched');
    return {
     complete:response=>ledger.mark(id,'completed',{usage:response?.usage||null,invoiceMeasuredUSD:null}),

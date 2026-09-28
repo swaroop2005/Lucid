@@ -2,7 +2,17 @@ import test from 'node:test';import assert from 'node:assert/strict';import {mkd
 import {Store} from '../server/db.js';import {createApp} from '../server/app.js';import {configuration} from '../server/providers.js';import {CloudSettings} from '../server/settings.js';
 import {isAuditQuery,auditResponseFor} from './fixtures/hindsight-audit.js';
 import {officialDocumentFixture} from './fixtures/official-document.js';
-async function harness(t,dependencies={},config=configuration({})){const store=new Store(':memory:');const {app,worker}=createApp(store,config,dependencies);const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const url=`http://127.0.0.1:${server.address().port}`;t.after(async()=>{await worker.run();await new Promise(r=>server.close(r));store.close();});async function request(path,body,method='POST',headers={}){const r=await fetch(url+'/api'+path,{method,headers:{'content-type':'application/json','x-lucid-local':'1',...headers},...(body!==undefined?{body:JSON.stringify(body)}:{})});return {status:r.status,body:await r.json()};}return {store,request,url};}
+async function harness(t,dependencies={},config=configuration({})){const store=new Store(':memory:');const {app,worker,learning,cloudWorkspace}=createApp(store,config,dependencies);const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const url=`http://127.0.0.1:${server.address().port}`;t.after(async()=>{learning.close();cloudWorkspace.close();await worker.run();await new Promise(r=>server.close(r));store.close();});async function request(path,body,method='POST',headers={}){const r=await fetch(url+'/api'+path,{method,headers:{'content-type':'application/json','x-lucid-local':'1',...headers},...(body!==undefined?{body:JSON.stringify(body)}:{})});return {status:r.status,body:await r.json()};}return {store,request,url,cloudWorkspace};}
+
+test('cloud-required runtime cannot silently substitute local preparation',async t=>{
+ const {store,request}=await harness(t,{cloudRequired:true}),before=store.read();
+ const view=await request('/workspace',undefined,'GET');assert.equal(view.body.config.cloudRequired,true);
+ const local=await request('/cases/CS-1042/analyze',{useMemory:true,useHindsight:false});
+ assert.equal(local.status,409);assert.match(local.body.error,/Cloud-required/);
+ assert.deepEqual(store.read().cases,before.cases);
+ const cloud=await request('/cases/CS-1042/analyze',{useMemory:true,useHindsight:true,acknowledgeCreditUse:true});
+ assert.equal(cloud.status,400);assert.deepEqual(store.read().cases,before.cases);
+});
 test('baseline excludes learned articles and hidden outcomes from drafting',async t=>{let context;const {store,request}=await harness(t,{draft:async(c,ticket,candidates,useMemory)=>{context={ticket,candidates,useMemory};return {customer:'draft',engineering:'draft',provider:'test'};}});store.update(s=>s.articles.push({id:'SECRET-ARTICLE',fix:'withheld outcome'}));const r=await request('/cases/CS-1043/analyze',{useMemory:false});assert.equal(r.status,200);assert.equal(context.candidates.length,0);assert.equal(JSON.stringify(context).includes('probeTimeoutSeconds'),false);assert.equal(context.ticket.companyId,'org-b');});
 test('API validates input and CSRF origin',async t=>{const {request}=await harness(t);assert.equal((await request('/cases',{title:'x'})).status,400);assert.equal((await request('/cases',{},'POST',{'x-lucid-local':'0'})).status,403);assert.equal((await request('/cases',{},'POST',{origin:'https://attacker.example'})).status,403);assert.equal((await request('/cases/nope/analyze',{useMemory:true})).status,404);});
 test('new case company association and edited drafts persist',async t=>{const {request}=await harness(t);const r=await request('/cases',{companyName:'Example Company',contact:'Test person',title:'Cannot start a job',description:'This is a locally entered test case.'});assert.equal(r.status,201);const id=r.body.id;assert.equal((await request(`/cases/${id}/drafts`,{customer:'Edited customer response',engineering:'Edited engineering brief'},'PUT')).status,200);const s=(await request('/workspace',undefined,'GET')).body;assert.equal(s.companies.find(o=>o.id===r.body.companyId).name,'Example Company');assert.equal(s.cases.find(c=>c.id===id).drafts.customer,'Edited customer response');});
@@ -45,4 +55,34 @@ test('official-document API exposes exact source sections and DOC contributions 
  const ref=analyzed.body.analysis.references.find(r=>r.id===fixture.document.id);assert.equal(ref.kind,'official-document');assert.equal(ref.summary,fixture.document.sectionText);assert.equal(ref.versions,'runner 19.3.0 (exact source release)');assert.equal(ref.url,fixture.document.url);assert.equal(ref.reviewBasis,undefined);
  const contribution=analyzed.body.analysis.modelResult.provenance.records[0];assert.equal(contribution.sourceId,fixture.document.id);assert.equal(contribution.articleId,undefined);assert.equal(contribution.sourceType,'official-document');assert.equal(contribution.version,'19.3.0');assert.equal(contribution.url,fixture.document.url);assert.equal(providerCalls,0);assert.equal(investigations,1);
  store.update(s=>s.officialDocuments[0].sectionText+=' Changed without a new fingerprint.');assert.equal((await request('/official-documents',undefined,'GET')).body[0].cloudVerified,false);
+});
+
+test('approved resolution automatically queues learning and keeps pending Cloud status separate',async t=>{
+ const calls=[];const learningCloseout={enqueue:(id,options)=>{calls.push({id,options});return {key:'queued-new-lesson',status:'pending'};},run:async key=>{calls.push({key});return {status:'pending'};}};
+ const {request,store}=await harness(t,{learningCloseout});
+ const resolution={fix:'Corrected a confirmed setting',cause:'Configuration mismatch',evidence:'The affected job now succeeds',limitations:'Only this deployment',engineer:'Reviewer',confirmed:true};
+ assert.equal((await request('/cases/CS-1042/resolution',resolution)).status,200);assert.equal(calls.length,0);
+ const result=await request('/cases/CS-1042/knowledge',{title:'Reviewed deployment correction',fix:resolution.fix,cause:resolution.cause,verification:resolution.evidence,limitations:resolution.limitations,reviewer:'Reviewer',reviewed:true});
+ assert.equal(result.status,200);assert.equal(result.body.learningCloseout.status,'pending');assert.equal(calls[0].id,result.body.id);assert.equal(calls[0].options.caseId,'CS-1042');assert.equal(calls[1].key,'queued-new-lesson');assert.equal(store.read().articles.find(a=>a.id===result.body.id).cloudScope,undefined);
+});
+
+
+test('committed API saves queue a full checkpoint while previews and GETs do not; handed-off cache rejects edits',async t=>{
+ const calls=[],documents=new Map(),transport={listDocuments:async()=>{calls.push('list');const items=[...documents.values()].filter(d=>d.id.includes('-manifest-'));return {items,total:items.length,offset:0};},getDocument:async(_bank,id)=>documents.get(id)||null,listMentalModels:async()=>({items:[],total:0}),retain:async(bank,content,options)=>{calls.push('retain');documents.set(options.documentId,{id:options.documentId,bank_id:bank,original_text:content,tags:options.tags,document_metadata:options.metadata,memory_unit_count:0});}};
+ const {store,request,cloudWorkspace}=await harness(t,{cloudWorkflow:{connectionId:()=> 'test-connection',provider:()=>({c:{bank:'test-bank'}})},authorizeCloudWorkspace:async()=>({}),cloudWorkspaceOptions:{transportFactory:()=>transport,wait:async()=>{},canSpend:()=>true,checkpointOptions:{debounceMs:60000,wait:async()=>{}}}});
+ await request('/cloud-workspace',undefined,'GET');assert.equal(calls.length,0);
+ await request('/corpus/preview',{records:[]});assert.equal((await cloudWorkspace.flush()).status,'idle');assert.equal(calls.length,0);
+ const saved=await request('/cases/CS-1042/tasks',{title:'Verify API checkpoint integration'});assert.equal(saved.status,201);assert.equal(store.read().cloudWorkspaceStatus.status,'pending');assert.equal((await cloudWorkspace.flush()).status,'verified');assert.ok(calls.includes('retain'));
+ const before=store.read().cases;store.update(s=>s.cloudWorkspaceStatus.activeOwnerId='other-editor');assert.equal((await request('/cases/CS-1042/tasks',{title:'Must not save'})).status,409);assert.deepEqual(store.read().cases,before);
+});
+
+test('empty recovered workspaces create the first two distinct valid case IDs starting at CS-1041',async t=>{
+ const {store,request}=await harness(t);store.update(s=>{s.cases=[];s.companies=[];});
+ const input={companyName:'Recovery fixture company',contact:'Fixture contact',title:'First saved case',description:'A new report after recovering an empty operational workspace.'};
+ const first=await request('/cases',input),second=await request('/cases',{...input,title:'Second saved case'});
+ assert.equal(first.status,201);assert.equal(second.status,201);assert.equal(first.body.id,'CS-1041');assert.equal(second.body.id,'CS-1042');assert.deepEqual(store.read().cases.map(c=>c.id),['CS-1042','CS-1041']);assert.equal(store.read().companies.length,1);assert.equal(first.body.companyId,second.body.companyId);
+});
+test('case numbering ignores malformed and unsafe IDs while preserving existing cases',async t=>{
+ const {store,request}=await harness(t);store.update(s=>{const template=s.cases[0];s.cases=['CS-2042','CS--Infinity','CS-NaN','CS-9e8','CS-0','unrelated-99999','CS-9007199254740992'].map(id=>({...structuredClone(template),id}));});const before=store.read().cases;
+ const result=await request('/cases',{companyName:'Numbering fixture company',contact:'Fixture contact',title:'A valid new case',description:'Malformed prior identities must not poison the next numeric identifier.'});assert.equal(result.status,201);assert.equal(result.body.id,'CS-2043');assert.deepEqual(store.read().cases.slice(1),before);
 });

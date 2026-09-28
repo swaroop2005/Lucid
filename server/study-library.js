@@ -19,4 +19,9 @@ const keywords={
  'digitalocean-2019':'account lock fraud false positive escalation cpu',
  'reddit-2023':'kubernetes calico upgrade labels admission webhook'};
 export function studyReference(s){return {id:`STUDY-${s.id}`,title:`${s.company}: ${s.category}`,summary:s.learning,question:'Which conditions in this historical incident match your environment?',url:s.url,versions:s.vendor,stage:s.category,executor:'Any',kind:'source-reviewed-study',status:'Publisher-reported historical outcome; not a verified fix for this case',reviewedAt:s.reviewedAt,outcome:s.outcomeStatus};}
-export function studySearch(query){return rankDocuments(query,studies,s=>keywords[s.id]||'').slice(0,2).map(studyReference);}
+export function studySearch(query){
+ // A single generic word must not pull a cross-product incident into a support
+ // investigation. Two mechanism terms still indicate analogy, never causality.
+ const broad=new Set(['configuration','outage','update','upgrade','authentication','cache','account','security','task','rollout','maintenance','recovery']);
+ return rankDocuments(query,studies,s=>keywords[s.id]||'').filter(s=>s.retrieval.matched.filter(term=>!broad.has(term)).length>=2).slice(0,2).map(studyReference);
+}

@@ -1,5 +1,11 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {EvidenceStore} from '../server/evidence-store.js';import {cleanPublicText,retrievalTerms} from '../server/evidence-text.js';import {studySearch,studies} from '../server/study-library.js';import {investigationInput} from '../server/openai.js';import {Store} from '../server/db.js';
+test('a generic configuration or account match does not import unrelated incident studies',()=>{
+ assert.deepEqual(studySearch('Runner service configuration changed'),[]);
+ assert.deepEqual(studySearch('ECR account credential authentication failure'),[]);
+ assert.deepEqual(studySearch('systemd package update'),[]);
+ assert.ok(studySearch('calico kubernetes labels upgrade').some(s=>s.id==='STUDY-reddit-2023'));
+});
 const report=(id,title,body)=>({id,url:'https://gitlab.com/gitlab-org/gitlab-runner/-/issues/'+id,title,body,author:'Example public name',createdAt:'2024-01-01',updatedAt:'2024-01-02',state:'closed',family:'Network & DNS',labels:['type::bug'],source:'GitLab Runner public issues'});
 test('evidence index deduplicates, updates search and keeps closed reports unverified',()=>{const s=new EvidenceStore(':memory:');assert.equal(s.upsert(report('1','Certificate failure','x509 unknown authority in helper')),true);assert.equal(s.upsert(report('1','DNS lookup failure','dns resolver failure on alpine')),false);assert.equal(s.stats().indexed,1);assert.equal(s.stats().confirmed,0);assert.equal(s.search({q:'certificate'}).total,0);assert.equal(s.search({q:'dns'}).total,1);assert.equal(s.get('1').author,'Public user');assert.equal(s.get('1').review_status,'indexed');s.close();});
 test('search is parameterized, paginated and family constrained',()=>{const s=new EvidenceStore(':memory:');for(let i=0;i<30;i++)s.upsert(report(String(i),'DNS lookup '+i,'Resolver problem observed'));assert.equal(s.search().rows.length,24);assert.equal(s.search({page:2}).rows.length,6);assert.equal(s.search({page:1.9}).page,1);assert.equal(s.search({family:"' OR 1=1 --"}).total,0);assert.doesNotThrow(()=>s.search({q:'" OR * : ( )'}));assert.equal(s.stats().indexed,30);s.close();});

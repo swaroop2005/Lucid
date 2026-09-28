@@ -7,6 +7,11 @@ import {buildMemoryPacket} from '../server/memory-evidence.js';
 import {investigationInput} from '../server/openai.js';
 import {isAuditQuery,auditResponseFor} from './fixtures/hindsight-audit.js';
 const scope='lucid-workspace-investigation-test',connectionId='connection-test';
+function planFixture(x){
+ x.workflow.protocol='plan-v2';
+ x.response.structured_output={hypotheses:[{explanation:'If the response originated at an upstream proxy, the effective limit there may differ from the requested setting.',evidenceHandles:['E1']}],diagnostics:[{check:'Identify which component returned the recorded 413 response from the request logs.',expectedObservation:'A component name and the corresponding failed request.',ifObserved:'Compare the effective limit at that component with the attempted client change.',ifNotObserved:'Request the original response headers and matching request log before choosing a configuration target.',evidenceHandles:['E1']}],conditionalResolutions:[]};
+ return x;
+}
 function setup(){
  const c={id:'CASE-1',title:'Upload rejected',description:'Artifact upload reports HTTP 413',executor:'Shell',hosting:'Self-managed',runnerVersion:'',serverVersion:'',chartVersion:'0.8.0',stage:'artifact-upload',symptom:'unclassified',attempts:[{step:'Raise client limit',result:'Inconclusive',evidence:'413 continues'}],tasks:[]};
  const a={id:'KA-0001',title:'Review effective proxy limit',revision:1,fingerprint:'a'.repeat(64),executor:'Shell',hosting:'Self-managed',runnerVersion:'',serverVersion:'',chartVersion:'',symptom:'Historical upload failure narrative',fix:'Source reported recovery after applying configuration.',cause:'Unknown',verification:'Source report only',limitations:'Historical outcome; not independently reproduced',updatedAt:'2026-09-28T00:00:00Z',sourceCases:[],citations:[{id:'SRC-1',title:'Historical report',url:'https://gitlab.com/gitlab-org/gitlab-runner/-/issues/2366',quote:'Solved after reconfigure.',sourceDate:'2017-01-01',status:'Source-reported recovery'}],diagnostics:['Review the effective value.'],failedAlternatives:[{step:'Raise limit',evidence:'Did not initially help',url:'https://gitlab.com/gitlab-org/gitlab-runner/-/issues/2366'}],curation:{method:'assistant-source-inspection',reviewer:'AI source reviewer',reviewedAt:'2026-09-28T00:00:00Z'}};
@@ -104,4 +109,61 @@ test('audit provenance is independently checked and audit-time drift preserves t
   };
   await assert.rejects(x.workflow.investigate(x.c.id));const entry=x.state.hindsightInvestigations[0];assert.equal(entry.status,'unverified');assert.equal(entry.result,undefined);assert.equal(entry.candidateProvenance.records.length,1);assert.equal(entry.phases.filter(p=>p.kind==='investigation-audit').length,1);assert.equal(x.calls.filter(c=>c==='audit').length,1);
  }
+});
+
+test('evidence plan delivers one grounded plan with server-owned references and no second audit',async()=>{
+ const x=planFixture(setup()),before=structuredClone(x.state.cases),article=structuredClone(x.a);
+ const result=await x.workflow.investigate(x.c.id);
+ assert.ok(result.customer.includes('component'));
+ assert.deepEqual(result.citations,['KA-0001']);
+ assert.deepEqual(x.calls,['directives','recall','reflect','memory']);
+ assert.equal(x.state.hindsightInvestigations[0].protocol,'plan-v2');
+ assert.ok(x.state.hindsightInvestigations[0].planInputHash);
+ assert.deepEqual(x.state.cases,before);assert.deepEqual(x.a,article);
+ assert.equal(result.provenance.records[0].documentId,x.a.cloudScope.docId);
+ assert.equal(x.state.hindsightInvestigations[0].phases.filter(p=>p.kind==='investigation-reflect').length,1);
+ assert.equal(x.state.hindsightInvestigations[0].phases.filter(p=>p.kind==='investigation-audit').length,0);
+});
+
+test('plan cannot bypass source, trace, context drift or authorization checks',async()=>{
+ for(const variant of ['source','trace','connection','handle','denied']){
+  const x=planFixture(setup()),before=structuredClone(x.state.cases),reflect=x.client.reflect;
+  if(variant==='denied')x.workflow.authorize=async()=>{throw new Error('Denied');};
+  x.client.reflect=async(...args)=>{
+   const r=await reflect(...args);
+   if(variant==='source')x.fact.state='invalidated';
+   if(variant==='trace')delete r.trace;
+   if(variant==='connection')x.setConnection('changed');
+   if(variant==='handle')r.structured_output.diagnostics[0].evidenceHandles=['E99'];
+   return r;
+  };
+  await assert.rejects(x.workflow.investigate(x.c.id));
+  assert.deepEqual(x.state.cases,before);
+  assert.equal(x.state.hindsightInvestigations[0].status,'unverified');
+  assert.equal(x.state.hindsightInvestigations[0].result,undefined);
+  assert.ok(!x.calls.includes('audit'));
+ }
+});
+
+test('raw-primary investigation omits extraction schema and ignores conflicting secondary output',async()=>{
+ const x=planFixture(setup()),plan=structuredClone(x.response.structured_output);x.workflow.protocol='plan-v3-raw';
+ x.response.text=JSON.stringify(plan);x.response.structured_output={invented:'must never be used'};
+ x.response.structured_output_error='An irrelevant extraction field must not replace the primary answer';
+ const reflect=x.client.reflect;x.client.reflect=async(bank,query,options)=>{assert.equal(Object.hasOwn(options,'responseSchema'),false);return reflect(bank,query,options);};
+ const result=await x.workflow.investigate(x.c.id);assert.deepEqual(result.citations,['KA-0001']);assert.equal(x.state.hindsightInvestigations[0].plan.diagnostics[0].check,plan.diagnostics[0].check);
+ assert.deepEqual(x.calls,['directives','recall','reflect','memory']);
+});
+
+test('semantic discovery restores provider-ranked candidates only after exact fresh provenance, bounded to eight reads',async()=>{
+ const {semanticRecallEvidence}=await import('../server/hindsight-investigation.js');const x=setup();
+ const candidates=Array.from({length:12},(_,i)=>({node_id:'semantic-'+i,text:'Exact original fact '+i,score:1-i/20}));let reads=0;
+ const result={results:[x.fact],trace:{retrieval_results:[{method_name:'semantic',fact_type:'world',results:candidates}]}};
+ const records=await semanticRecallEvidence(result,[x.a],scope,async id=>{reads++;const row=candidates.find(r=>r.node_id===id);return {...x.fact,id,text:row.text};});
+ assert.equal(reads,8);assert.equal(records.length,8);assert.equal(records[0].factId,'semantic-0');assert.equal(records.some(r=>r.factId===x.fact.id),false);
+ for(const change of [{text:'changed'},{state:'invalid'},{tags:[scope]},{document_id:'foreign-document'}])await assert.rejects(semanticRecallEvidence(result,[x.a],scope,async id=>({...x.fact,id,text:candidates.find(r=>r.node_id===id).text,...change})),/Semantic discovery|exact current source scope/);
+ const fallback=await semanticRecallEvidence({results:[x.fact],trace:{truncated:true}},[x.a],scope,()=>assert.fail('No trace lookup'));assert.equal(fallback[0].factId,x.fact.id);assert.match(fallback[0].discovery,/unavailable/);
+});
+test('discovery excludes known component versions without losing genuine dates, HTTP codes or addresses',async()=>{
+ const {investigationRecallQuery}=await import('../server/hindsight-investigation.js');const query=investigationRecallQuery({title:'Runner 19.0.1 error 413',runnerVersion:'19.0.1',description:'At 2026-09-28 and 28.9.2026 host 10.0.0.1 failed; Runner 19.0.1.'});
+ assert.doesNotMatch(query,/19\.0\.1/);for(const value of ['413','2026-09-28','28.9.2026','10.0.0.1'])assert.ok(query.includes(value));
 });

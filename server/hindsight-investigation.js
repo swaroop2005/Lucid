@@ -5,6 +5,7 @@ import {reflectionIdentity,supportDirective} from './reflection.js';
 import {sourceScopeTags,equalTags,investigationTagGroups,verifiedArticleScope} from './hindsight-scope.js';
 import {officialDocumentApplicability,verifiedOfficialDocumentScope} from './hindsight-documents.js';
 import {buildAuditRequest,validateAuditOutput,renderAuditDiagnostics} from './hindsight-audit.js';
+import {buildInvestigationPlanRequest,validateInvestigationPlan,renderInvestigationPlan,parseInvestigationPlanText} from './investigation-plan.js';
 
 // Two complete article packets can produce several facts plus observation ancestors.
 // Validate all of them within a fixed allowance; never accept partial provenance.
@@ -16,11 +17,14 @@ export const investigationResponseSchema={type:'object',description:'Complete ed
  citations:{type:'array',description:'Exactly the canonical evidence IDs appearing as separate [ID] inline citations in finding, customer, engineering or nextQuestions. No combined [ID1, ID2] brackets. Do not list an ID absent from the draft text.',items:{type:'string'}},
  nextQuestions:{type:'array',maxItems:3,description:'Up to three unresolved questions ordered by diagnostic value. Do not ask for values or completed checks already in the case. Preserve inline [ID] attribution if a question relies on supplied evidence.',items:{type:'string'}}}};
 export function investigationRecallQuery(c){
- const title=[c.title,c.executor,c.symptom,c.runnerVersion,c.serverVersion,c.chartVersion].filter(Boolean).join(' ');
+ // Versions belong to applicability, not natural-language date extraction.
+ const versions=new Set([c.runnerVersion,c.serverVersion,c.chartVersion].filter(v=>typeof v==='string'&&/^\d+(?:\.\d+){1,3}(?:[-+][\w.-]+)?$/.test(v)));
+ const discovery=text=>String(text||'').replace(/\b\d+(?:\.\d+){1,3}(?:[-+][\w.-]+)?\b/g,token=>versions.has(token)?'':token).replace(/\s+/g,' ').trim();
+ const title=discovery([c.title,c.executor,c.symptom].filter(Boolean).join(' '));
  if(Buffer.byteLength(title)>1000)throw new DomainError('Investigation search summary is too long.');
  let query=title;
  // Discovery text only: the full report and every failed attempt remain intact in Reflect context.
- for(const word of String(c.description||'').split(/\s+/)){if(Buffer.byteLength(query+' '+word)>1500)break;query+=' '+word;}
+ for(const word of discovery(c.description).split(/\s+/)){if(Buffer.byteLength(query+' '+word)>1500)break;query+=' '+word;}
  return query.trim();
 }
 const fail=message=>{throw new DomainError(message,502);};
@@ -46,6 +50,24 @@ export function validateRecallEvidence(result,articles,scope){
  if(!Array.isArray(result?.results))fail('Hindsight recall returned no verifiable result list.');
  if(result.results.length>100)fail('Recall exceeded the bounded result validation limit.');
  return result.results.map(fact=>validateRawFact(fact,articles,scope));
+}
+export const MAX_DISCOVERY_READS=8;
+// The provider's semantic arm can find useful sources that its final cross-encoder
+// discards. Trace IDs are discovery hints only; fresh facts establish eligibility.
+export async function semanticRecallEvidence(result,articles,scope,readMemory){
+ const arms=result?.trace?.retrieval_results;
+ if(!Array.isArray(arms)||result.trace.truncated===true)return validateRecallEvidence(result,articles,scope).map(r=>({...r,discovery:'Validated final results; semantic trace unavailable'}));
+ const candidates=arms.filter(a=>a.method_name==='semantic'&&['world','experience'].includes(a.fact_type)).flatMap(a=>Array.isArray(a.results)?a.results:[])
+  .filter(r=>typeof r.node_id==='string'&&r.node_id.length<=200&&typeof r.text==='string'&&Number.isFinite(r.score)).sort((a,b)=>b.score-a.score);
+ const unique=[...new Map(candidates.map(r=>[r.node_id,r])).values()].slice(0,MAX_DISCOVERY_READS),records=[];
+ for(const candidate of unique){
+  const fact=await readMemory(candidate.node_id);
+  if(fact?.id!==candidate.node_id||fact.state!=='valid'||fact.invalidated_at||fact.edited_at||fact.text!==candidate.text)fail('Semantic discovery fact changed or is not valid.');
+  records.push({...validateRawFact(fact,articles,scope),discovery:'Hindsight semantic arm',semanticScore:candidate.score});
+ }
+ // If the provider supplies semantic candidates, use their verified ordering.
+ // Never pad a short list with less relevant final-ranking matches.
+ return unique.length?records:validateRecallEvidence(result,articles,scope).map(r=>({...r,discovery:'Validated final results; no recognized semantic candidates'}));
 }
 export async function validateBasedOn(result,articles,{scope,readMemory,allowedDirectiveContents=[supportDirective],maxReads=MAX_PROVENANCE_READS}={}){
  const basis=result?.based_on;
@@ -86,7 +108,7 @@ export async function runInvestigationAudit({context,candidate,selected,provider
  const sourceIds=context.evidence.filter(e=>['experience-memory','official-document'].includes(e.kind)).map(e=>e.id);
  if(!Array.isArray(selected)||new Set(selected.map(s=>s.id)).size!==selected.length||selected.length!==sourceIds.length||selected.some(s=>!sourceIds.includes(s.id)))throw new DomainError('Audit sources differ from the complete selected candidate evidence.',409);
  const {query,responseSchema,inputHash}=buildAuditRequest(context,candidate);
- const options={budget,responseSchema,tagGroups:investigationTagGroups(selected,scope),applyAllDirectives:false,excludeMentalModels:true,includeFacts:true,includeToolCalls:true,includeToolCallOutput:true,reflectSearchObservationsMaxTokens:4096,reflectSearchObservationsIncludeEntities:false};
+ const options={budget,...(responseSchema?{responseSchema}:{}),tagGroups:investigationTagGroups(selected,scope),applyAllDirectives:false,excludeMentalModels:true,includeFacts:true,includeToolCalls:true,includeToolCallOutput:true,reflectSearchObservationsMaxTokens:4096,reflectSearchObservationsIncludeEntities:false};
  const response=await network('investigation-audit',{query,options,auditInputHash:inputHash},()=>provider.getClient().reflect(provider.c.bank,query,{...options,signal:AbortSignal.timeout(180000)}));
  if(response.structured_output_error)fail('Hindsight audit extraction failed. The candidate remains private; no automatic retry was sent.');
  if(!response.structured_output)fail('Hindsight returned no structured audit. Existing drafts are unchanged.');
@@ -98,7 +120,7 @@ export async function runInvestigationAudit({context,candidate,selected,provider
 
 // SDK output is evidence, not permission to widen retrieval or invoke other providers.
 export class HindsightInvestigation{
- constructor(store,provider,{connectionId,authorize,now=()=>new Date().toISOString()}={}){this.store=store;this.provider=provider;this.connectionId=connectionId;this.authorize=authorize;this.now=now;this.busy=false;}
+ constructor(store,provider,{connectionId,authorize,protocol='audit-v1',now=()=>new Date().toISOString()}={}){if(!['audit-v1','plan-v2','plan-v3-raw'].includes(protocol))throw new DomainError('Unknown investigation protocol.');this.protocol=protocol;this.store=store;this.provider=provider;this.connectionId=connectionId;this.authorize=authorize;this.now=now;this.busy=false;}
  async investigate(caseId,{budget='high',useMemory=true,references=[]}={}){
   if(this.busy)throw new DomainError('Another Hindsight investigation is running.',409);
   if(!['mid','high'].includes(budget))throw new DomainError('Choose balanced or deep Hindsight search.');
@@ -116,7 +138,7 @@ export class HindsightInvestigation{
    const same=eligible.map(a=>currentSource(current,a));
    if(same.some(a=>!a)||hash(same)!==sourceIdentity)throw new DomainError('Approved source scope changed during investigation. Drafts were not applied.',409);
   };
-  const id=randomUUID(),entry={id,at:this.now(),caseId,connectionId,inputHash,budget,useMemory,status:'prepared',phases:[],eligibleArticleIds:eligible.filter(a=>a.kind!=='official-document').map(a=>a.id),eligibleDocumentIds:eligible.filter(a=>a.kind==='official-document').map(a=>a.id),policyVersion:2};
+  const id=randomUUID(),entry={id,at:this.now(),caseId,connectionId,inputHash,budget,useMemory,status:'prepared',phases:[],eligibleArticleIds:eligible.filter(a=>a.kind!=='official-document').map(a=>a.id),eligibleDocumentIds:eligible.filter(a=>a.kind==='official-document').map(a=>a.id),policyVersion:2,protocol:this.protocol};
   const update=fn=>this.store.update(s=>{s.hindsightInvestigations??=[];let saved=s.hindsightInvestigations.find(x=>x.id===id);if(!saved){saved=structuredClone(entry);s.hindsightInvestigations.push(saved);}fn(saved);});
   update(()=>{});this.busy=true;
   const network=async(kind,request,call)=>{
@@ -135,23 +157,32 @@ export class HindsightInvestigation{
     const query=recallQuery;
     const options={budget,types:['world','experience'],maxTokens:4096,includeChunks:true,maxChunkTokens:4096,includeEntities:false,trace:true,tagGroups:investigationTagGroups(eligible,scope),queryTimestamp:c.occurredAt||this.now()};
     recall=await network('investigation-recall',{query,options},()=>this.provider.getClient().recall(this.provider.c.bank,query,{...options,signal:AbortSignal.timeout(90000)}));
-    records=validateRecallEvidence(recall,eligible,scope);
+    validateRecallEvidence(recall,eligible,scope);
+    records=this.protocol.startsWith('plan-')?await semanticRecallEvidence(recall,eligible,scope,factId=>network('investigation-provenance',{factId,phase:'discovery'},()=>this.provider.readMemory(factId))):validateRecallEvidence(recall,eligible,scope);
    }
    const ranked=[...new Set(records.map(r=>r.sourceId))].map(id=>eligible.find(a=>a.id===id));
    const context=investigationInput(c,ranked.filter(a=>a.kind!=='official-document'),references,{officialDocuments:ranked.filter(a=>a.kind==='official-document'),documentRejections}),selected=ranked.filter(a=>context.evidence.some(e=>e.id===a.id));
    for(const item of context.evidence){if(['experience-memory','official-document'].includes(item.kind)){const a=selected.find(a=>a.id===item.id);item.retrieval={provider:'Hindsight strict scoped recall',documentId:a.cloudScope.docId,revision:a.revision,hash:a.fingerprint,factIds:records.filter(r=>r.sourceId===a.id).map(r=>r.factId),contentBasis:item.kind==='official-document'?'Complete exact-version official section; normative guidance, not an observed resolution':'Canonical source-reviewed article; retrieved facts are not independent corroboration'};}}
-   const query=investigationInstructions+'\nUse Hindsight search only within the server-enforced eligible scopes. Cite supplied canonical evidence IDs, not raw fact IDs. Return the requested editable drafts. Case and evidence data follow:\n'+JSON.stringify(investigationModelContext(context));
+   let query=investigationInstructions+'\nUse Hindsight search only within the server-enforced eligible scopes. Cite supplied canonical evidence IDs, not raw fact IDs. Return the requested editable drafts. Case and evidence data follow:\n'+JSON.stringify(investigationModelContext(context));
    if(Buffer.byteLength(query)>19000)throw new DomainError('The complete investigation context exceeds its input allowance.');
-   const responseSchema=structuredClone(investigationResponseSchema),citationIds=context.evidence.map(e=>e.id);
+   let responseSchema=structuredClone(investigationResponseSchema);const citationIds=context.evidence.map(e=>e.id);
    if(citationIds.length)responseSchema.properties.citations.items.enum=citationIds;
    else responseSchema.properties.citations.maxItems=0;
-   const options={budget,responseSchema,tagGroups:investigationTagGroups(selected,scope),applyAllDirectives:false,excludeMentalModels:true,includeFacts:true,includeToolCalls:true,includeToolCallOutput:true,reflectSearchObservationsMaxTokens:4096,reflectSearchObservationsIncludeEntities:false};
+   let planRequest=null;
+   if(this.protocol.startsWith('plan-')){planRequest=buildInvestigationPlanRequest(context,{rawText:this.protocol==='plan-v3-raw'});query=planRequest.query;responseSchema=this.protocol==='plan-v3-raw'?undefined:planRequest.responseSchema;}
+   const options={budget,...(responseSchema?{responseSchema}:{}),tagGroups:investigationTagGroups(selected,scope),applyAllDirectives:false,excludeMentalModels:true,includeFacts:true,includeToolCalls:true,includeToolCallOutput:true,reflectSearchObservationsMaxTokens:4096,reflectSearchObservationsIncludeEntities:false};
    update(saved=>{saved.context=context;saved.selectedArticleIds=selected.filter(a=>a.kind!=='official-document').map(a=>a.id);saved.selectedDocumentIds=selected.filter(a=>a.kind==='official-document').map(a=>a.id);});
    const response=await network('investigation-reflect',{query,options},()=>this.provider.getClient().reflect(this.provider.c.bank,query,{...options,signal:AbortSignal.timeout(180000)}));
-   if(response.structured_output_error)fail('Hindsight generated prose but structured draft extraction failed. The response is recorded; no automatic retry was sent.');
-   if(!response.structured_output)fail('Hindsight returned no structured draft. The response is recorded; existing drafts are unchanged.');
+   if(this.protocol!=='plan-v3-raw'&&response.structured_output_error)fail('Hindsight generated prose but structured draft extraction failed. The response is recorded; no automatic retry was sent.');
+   if(this.protocol!=='plan-v3-raw'&&!response.structured_output)fail('Hindsight returned no structured draft. The response is recorded; existing drafts are unchanged.');
    if(!response.trace||!Array.isArray(response.trace.tool_calls)||!Array.isArray(response.trace.llm_calls))fail('Hindsight did not return a complete investigation trace.');
    const provenance=await validateBasedOn(response,selected,{scope,readMemory:factId=>network('investigation-provenance',{factId},()=>this.provider.readMemory(factId))});
+   if(this.protocol.startsWith('plan-')){
+    const plan=this.protocol==='plan-v3-raw'?parseInvestigationPlanText(response.text,context):validateInvestigationPlan(response.structured_output,context),output=renderInvestigationPlan(plan,context);
+    check();provenance.selectionFacts=records.filter(r=>selected.some(a=>a.id===r.sourceId));
+    const result={...output,evidenceIds:context.evidence.map(e=>e.id),selectedDocumentIds:selected.filter(a=>a.kind==='official-document').map(a=>a.id),evidenceSelection:context.selection,provider:`Hindsight evidence plan · ${budget==='high'?'deep':'balanced'} search`,usage:response.usage||null,provenance,trace:response.trace,investigationId:id,reviewRequired:true,generatedAt:this.now(),inputHash,connectionId};
+    update(saved=>{saved.plan=plan;saved.planInputHash=planRequest.inputHash;saved.status='succeeded';saved.result=result;});return result;
+   }
    const candidate=validateInvestigationOutput(response.structured_output,context);
    check();
    provenance.selectionFacts=records.filter(r=>selected.some(a=>a.id===r.sourceId));

@@ -1,12 +1,12 @@
 # Lucid
 
-Lucid is a local support-investigation prototype focused on GitLab Runner. It keeps a report, environment details, attempted steps, source evidence and editable responses together. Historical knowledge, exact-version official guidance and current-case observations remain separate.
+Lucid is a local support-investigation prototype focused on GitLab Runner. It keeps reports, environment details, attempted steps, source evidence and editable responses together. Historical knowledge, exact-version official guidance and current-case observations remain separate.
 
-**Status:** local workflows and source-verification controls are implemented. Reliable AI investigation and resolution are not established. The final audit-only pilot delivered **0/12** results; the final paired fresh-case evaluation delivered **0/4**. The application withholds invalid results instead of presenting an unsupported fix. See [quality and limitations](docs/QUALITY.md).
+**Status:** local workflows, Cloud archive/recovery controls and reviewed-outcome learning are implemented. Reliable AI investigation and resolution are **not established**. In the latest developmental comparison, 5 of 8 attempts delivered output; all five had material errors and averaged 3.4/10. A new 50-case cohort is prepared but has not been executed. The experimental protocol has not been promoted to the normal runtime. See [quality](docs/QUALITY.md).
 
 ## Run locally
 
-Requires Node.js **22.13 or newer**, npm and a supported desktop browser. The release preparation used Node.js **22.22.1** and npm **9.2.0**. Run commands from the repository root:
+Requires Node.js **22.13 or newer**, npm and a supported browser:
 
 ```sh
 git clone https://github.com/swaroop2005/Lucid.git
@@ -15,32 +15,32 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:4317**. First launch creates a local SQLite workspace with **nine reconstructed public-source fixture cases**. These are demonstration exercises, not a copy of anyone's operational workspace. No AI credentials or paid provider calls are needed for the default local workflow.
+Open **http://127.0.0.1:4317**. First launch creates nine reconstructed public-source fixture cases. You can inspect and edit local records without credentials; normal investigation preparation requires a configured Hindsight connection and explicit local spending authorization. The isolated test server alone enables the offline rehearsal bypass.
 
 ```sh
 npm run build
 npm start
 ```
 
-The production command serves the built interface on the same loopback address. The application is an unauthenticated local prototype; do not expose it through a public host or tunnel.
+This serves the built interface on loopback. The application has no user authentication; do not expose it publicly.
 
-## What you can do
+## Current workflows
 
-- Record a report, environment details, attempted steps and outcome evidence.
-- Prepare local template responses and inspect source references.
-- Maintain reviewed local knowledge with explicit provenance and applicability limits.
-- Optionally connect Hindsight for strictly scoped retrieval and two-stage AI investigation: a private candidate followed by a mandatory evidence audit.
-- Inspect exact-version official sources and manually requested derived aids when their required local metadata is present.
+- Record reports, failed attempts, tasks, drafts and outcome evidence. Drafts remain editable and unsent.
+- Request bounded Hindsight investigation with a private candidate and mandatory evidence audit. Normal runtime uses the existing `audit-v1` protocol; the developmental semantic-plan protocol remains unpromoted.
+- Review knowledge with explicit provenance and applicability limits. Explicitly approved outcomes queue learning automatically; generated drafts and failed suggestions are not knowledge.
+- Archive committed operational saves through a bounded, coalescing Cloud checkpoint queue. Connections shows the complete save estimate and remaining local allowance. Pending or unverified does not mean saved successfully to Cloud.
+- Preview and explicitly recover a verified operational archive; then reverify knowledge originals for the destination connection. Manual checkpoint and owner handoff controls remain available.
 
-The AI result mode is deliberately limited to diagnostic questions, attributed conditional hypotheses and labeled reported observations. A supported audit verdict does not automatically approve a prescription. Drafts are editable and unsent; the app does not execute a proposed fix.
+A workspace has one cooperating editor. Owner handoff detects observed competing history but is not authentication, a distributed lock or a transactional database. See [Cloud checkpoints and recovery](docs/CLOUD-WORKSPACE.md).
 
-## Optional Hindsight connection
+## Cloud setup and private state
 
-Save the Cloud endpoint, your bank identifier and API key through **Connections**. Credentials are stored in a server-side local file, not browser storage. The current endpoint is fixed to `https://api.hindsight.vectorize.io`.
+Save your Hindsight endpoint, bank and key in **Connections**, then deliberately authorize paid usage through the supplied local setup command. Settings alone grant no spending authority. An operational save can initiate a checkpoint once existing authority permits the complete batch; reservations are estimates, not bills or a provider-enforced balance. Approved learning queued earlier can resume at startup or after connection changes. Operational checkpoints themselves do not start merely because the app boots or a status page polls.
 
-Saving a connection does not upload knowledge or authorize spending. A separate, explicit local budget authorization is required before paid requests. The key is not restricted by this application to read-only or least-privilege access: operations can incur charges and some workflows write to Cloud. Follow [setup](docs/SETUP.md) before enabling them.
+A fresh clone includes small synthetic/authored fixtures, not downloaded report discussions, versioned-document caches, the earlier 247-article private library, credentials or prior spending authorization. Cloud facts alone cannot reconstruct canonical records. A complete verified operational archive can be recovered through the new recovery workflow; otherwise a controlled private library handoff remains available. This repository does not claim that any particular live bank has completed migration.
 
-A fresh clone does **not** include the previously prepared 247-article library, five retained official-document records, downloaded report corpus or versioned-document cache. An existing Cloud bank cannot reconstruct the application's local article content, source metadata, workspace identity and scope proofs by itself. Continuing an existing workspace requires a private metadata handoff; using your own new bank starts without that library. No credentials, prior spending authorization or credit balance are included in this repository. Small authored research fixtures and source-identity exclusions are included; they are not the downloaded report corpus.
+Follow [setup](docs/SETUP.md) before enabling paid work. All operational databases, Cloud credentials, budget ledgers, private backups and evaluation traces stay outside version control.
 
 ## Development checks
 
@@ -48,16 +48,18 @@ A fresh clone does **not** include the previously prepared 247-article library, 
 npm test
 npm run lint
 npm run build
+npx playwright install chromium
 npm run test:e2e
 ```
 
-Install its bundled Chromium first with `npx playwright install chromium`; see [setup](docs/SETUP.md). Unit and browser tests use isolated fixtures and fake provider responses. Their success is not evidence that live model answers are correct.
+Tests use isolated stores and fake provider responses. Passing software tests does not prove live answer accuracy or a completed live migration.
 
 ## Documentation
 
 - [Setup and private-state handling](docs/SETUP.md)
 - [Architecture and source boundaries](docs/ARCHITECTURE.md)
 - [Case-to-knowledge workflow](docs/WORKFLOW.md)
+- [Cloud checkpoints and recovery](docs/CLOUD-WORKSPACE.md)
 - [Quality results and known limits](docs/QUALITY.md)
 - [Third-party notices](docs/THIRD-PARTY-NOTICES.md)
 

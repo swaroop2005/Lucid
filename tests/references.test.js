@@ -1,5 +1,14 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {referenceSearch,rankDocuments,references,referenceExclusion} from '../server/reference-library.js';
+test('generic configuration and user words cannot transfer unrelated subsystem advice',()=>{
+ const report='S3 cache settings appear ignored in run-single mode. Same configuration and service user; logs show local cache volumes.';
+ const rows=referenceSearch(report,'Docker');
+ assert.ok(rows.some(r=>r.id==='REF-12'));
+ assert.ok(!rows.some(r=>['REF-15','REF-19'].includes(r.id)));
+ for(const id of ['REF-15','REF-19'])assert.match(referenceExclusion({description:report,executor:'Docker'},references.find(r=>r.id===id)),/topic/);
+ const tls=referenceSearch('Kubernetes UBI helper cache x509 certificate unknown authority','Kubernetes');
+ assert.ok(tls.some(r=>r.id==='REF-08'));assert.ok(!tls.some(r=>['REF-04','REF-05'].includes(r.id)));
+});
 test('free-form report retrieves source-backed TLS guidance without fixture IDs',()=>{const r=referenceSearch('New worker connection fails x509 unknown authority certificate','Docker');assert.equal(r[0].id,'REF-08');assert.match(r[0].url,/docs.gitlab.com/);});
 test('unrelated report does not manufacture reference evidence',()=>{assert.deepEqual(referenceSearch('Payroll reimbursement approval'),[]);});
 test('known executor mismatch stays visible in reference result',()=>{const r=referenceSearch('pod scheduling pending','Shell');assert.match(r[0].applicability,/Different executor/);});

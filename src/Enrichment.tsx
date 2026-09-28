@@ -68,6 +68,6 @@ export function EnrichedReport({id,onOpenCase,section='all'}:{id:string;onOpenCa
 export function MemoryStatus(){
  const {data:w}=useQuery({queryKey:['workspace'],queryFn:()=>api<Workspace>('/workspace')});
  const {data:s}=useQuery({queryKey:['enrichment-progress'],queryFn:()=>api<Counts>('/evidence/enrichment')});
- const retained=w?.articles.filter(a=>a.cloudRetention?.status==='succeeded'&&a.cloudRetention.revision===a.revision).length||0;
+ const retained=w?.articles.filter(a=>a.cloudRetention?.status==='succeeded'&&a.cloudRetention.revision===a.revision&&!a.cloudRetention.connectionMismatch).length||0;
  return <section className="memory-status" aria-label="Source library and memory"><h3><Database size={17}/> What Lucid remembers</h3><div className="memory-stages"><div><strong>{s?number(s.total):'—'}</strong><span>source reports</span><small>Searchable evidence, not approved memory</small></div><div><strong>{w?number(w.articles.length):'—'}</strong><span>published local articles</span><small>Check each article’s review basis before reuse</small></div><div><strong>{w?number(retained):'—'}</strong><span>current articles retained in Cloud</span><small>Verified retention recorded by this workspace</small></div></div><p className="caption">Importing reports never sends them to Hindsight. Cloud retention and recall are explicit actions. These counts exclude connection tests, isolated pilots, older revisions and other bank contents.</p></section>;
 }
