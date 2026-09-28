@@ -10,10 +10,14 @@
 | --- | --- | --- |
 | Earlier audit-only pilot | Twelve immutable candidates: ten known material-error outputs and two high-scoring controls; one audit each | **0/12 delivered**; all failed structured-audit validation. |
 | Earlier fresh paired check | Two locally new real reports, memory and empty-memory arms | **0/4 delivered**; audit or candidate verification rejected every attempt. |
-| Latest developmental semantic-plan replay | Four previously used inputs, two arms each | **5/8 delivered**, three rejected. All five delivered outputs contained material errors. Delivered-output mean **3.4/10**. |
+| Hindsight developmental semantic-plan replay | Four previously used inputs, two arms each | **5/8 delivered**, three rejected. All five delivered outputs contained material errors. Delivered-output mean **3.4/10**. |
+| Separate external-reasoning developmental pilot | Same four reused cases, eight single-attempt generations; external reasoning with retained Hindsight memory versus control | **6/8 originally delivered**. Delivered mean **9.83/10**, with no material errors identified in those six. All eight raw candidates scored separately: both arm means **9.75/10**. |
+| Post-hoc offline guard replay | Same eight preserved external responses, no new generation calls | **8/8 accepted** after a narrow negation/reassessment guard repair. This does not replace original delivery or create new evaluation samples. |
 | Prepared fresh cohort | Fifty newly prepared cases, intended 100 paired arms | **Not executed.** No success rate or quality improvement can be inferred. |
 
-The newest review was source-aware AI grading, with arm labels visible; it was not blind human verification. Previously used replay inputs make it a developmental comparison, not an independent benchmark. Only two input pairs delivered both arms: their memory-minus-empty score differences were +1 and −2. The partial paired results do not establish a memory benefit. The 3.4/10 average describes delivered outputs only; rejected attempts are not silently counted as successful answers.
+These reviews were source-aware AI grading, with arm labels visible; they were not blind human verification. Previously used inputs make these developmental comparisons, not independent benchmarks. In the Hindsight semantic-plan replay, only two input pairs delivered both arms; their memory-minus-control differences were +1 and -2. Its 3.4/10 average describes delivered outputs only. Rejected attempts are not silently counted as successful answers.
+
+In the separate external pilot, the two original rejections were local guard false positives: negated certainty and a conditional confidence update were misclassified. Those delivered scores remain null. All eight raw responses were scored, including the withheld pair. Raw memory-minus-control differences were 0, 0, +1 and -1; both raw arm means were 9.75/10, with no material errors identified. The +1 reflected case-only evidence calibration, while the -1 reflected unfinished prose. The original delivery gate failed, and the raw/offline comparison still failed the no-regression criterion. **No overall or source-specific memory benefit was demonstrated.** The descriptive improvement over the earlier run is not an isolated causal test of model choice because prompts and protocols also differed. The experimental external-pilot runner and private run artifacts are not part of this release; the normal runtime remains unchanged.
 
 The older saved-candidate pilot deliberately included known failures and was not an unbiased benchmark. “Locally new” means newly introduced to that run, not proven absent from model training. Delivery counts measure whether the application accepted output; they are not semantic correctness rates.
 
@@ -24,7 +28,7 @@ Observed failure classes include historical workarounds becoming current prescri
 - Exact workspace/connection identity, canonical source revision, retained-document identity, original content and scope tags.
 - Bounded case/evidence context and citation/fact ancestry.
 - Case, source and candidate quotation/path membership in the audit.
-- Private candidate withholding and narrow guards on generated executable or prescriptive prose.
+- Private candidate withholding and narrow guards on generated executable or prescriptive prose. Negation is checked against each certainty phrase; epistemic confidence reassessment is distinguished from operational mutation. Later positive claims and operational instructions remain subject to the guard.
 - Durable local reservations, bounded operations, uncertain-write journals and preservation of previous drafts on failure.
 - Operational archive chunk/manifest hashes, complete parent history, ownership conflicts, local drift and explicit replacement confirmation.
 - Explicitly approved outcomes for learning; drafts, failed suggestions and operational archive chunks are excluded from approved-knowledge retrieval.

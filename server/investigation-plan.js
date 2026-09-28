@@ -39,12 +39,29 @@ function officialAuthority(source,currentCase){
 
 // This guard catches conspicuous executable text and explicit mutation requests.
 // It is deliberately not an entailment checker or a semantic safety guarantee.
+function hasUnsupportedCertainty(text){
+ const certainty=/\b(?:definitely|certainly|confirmed (?:cause|root cause)|proven cause|rules? out|ruled out|is the (?:root )?cause)\b/gi;
+ for(const match of text.matchAll(certainty)){
+  // Negation must govern this particular phrase, not a different claim earlier
+  // in the sentence. A following positive claim is still checked independently.
+  const prefix=text.slice(0,match.index).replaceAll('’',"'");
+  const negativeAuxiliary="(?:do not|don't|does not|doesn't|did not|didn't|cannot|can't|could not|couldn't|should not|shouldn't|must not|never)";
+  const directNegation=/\b(?:not|never)\s+(?:(?:a|the)\s+)?$/i.test(prefix);
+  const excludedInference=new RegExp('\\b'+negativeAuxiliary+'\\s+(?:infer|assume|claim|assert|conclude|establish)\\s+(?:(?:a|the)\\s+)?$','i').test(prefix);
+  const excludedTreatment=/\bwithout\s+(?:treating|regarding|presenting)\s+(?:it|this|that|the result|the evidence)\s+as\s+(?:(?:a|the)\s+)?$/i.test(prefix);
+  const excludedRuling=/^rules? out$/i.test(match[0])&&new RegExp('\\b'+negativeAuxiliary+'\\s+$','i').test(prefix);
+  if(!directNegation&&!excludedInference&&!excludedTreatment&&!excludedRuling)return true;
+ }
+ return false;
+}
 export function assertPlanProse(text){
  const executable=/`|(?:^|\s)--?[A-Za-z][\w-]*(?:\s|=|$)|\b[A-Za-z_][\w.]*\s*=|(?:\$\(|&&|\|\||=>)|(?:^|\s)(?:sudo|curl|wget|kubectl|powershell|bash|sh)\s|\[(?:KA|DOC|REF|SRC|STUDY)-|https?:\/\//i;
  const control=[...text].some(char=>char.charCodeAt(0)<32&&!['\n','\r','\t'].includes(char));
- const mutation=/(?:^|[.!?]\s+|\b(?:please|should|must|need to|then|try|could you|can you|would you|you can|you may|next step is to|recommend)\s+)(?:run|execute|install|uninstall|change|set|override|pin|upgrade|downgrade|disable|enable|delete|remove|restart|reconfigure|replace|increase|decrease|switch|add|edit)\b|\b(?:try|by|after)\s+(?:running|changing|setting|overriding|pinning|upgrading|downgrading|disabling|enabling|deleting|removing|restarting|replacing|switching)\b|\buse\s+(?:(?:an?|the)\s+)?(?:older|newer|different|another|alternative|previous)\s+(?:image|helper|version|release|setting|configuration)\b/i;
- const certainty=/\b(?:definitely|certainly|confirmed (?:cause|root cause)|proven cause|rules? out|ruled out|is the (?:root )?cause)\b/i;
- if(control||executable.test(text)||mutation.test(text)||certainty.test(text))fail('generated prose contains executable syntax, an explicit mutation request or unsupported certainty. Use observational diagnostics and conditional explanations.');
+ const mutation=/(?:^|[.!?;]\s+|\b(?:please|should|must|need to|then|and|or|try|could you|can you|would you|you can|you may|next step is to|recommend)\s+)(?:run|execute|install|uninstall|change|set|override|pin|upgrade|downgrade|disable|enable|delete|remove|restart|reconfigure|replace|increase|decrease|switch|add|edit)\b|\b(?:try|by|after)\s+(?:running|changing|setting|overriding|pinning|upgrading|downgrading|disabling|enabling|deleting|removing|restarting|replacing|switching)\b|\buse\s+(?:(?:an?|the)\s+)?(?:older|newer|different|another|alternative|previous)\s+(?:image|helper|version|release|setting|configuration)\b/i;
+ // Updating an epistemic assessment does not change the user's environment.
+ // Only the verb is normalized; later operational instructions remain visible.
+ const operationalText=text.replace(/\b(?:increase|decrease)\s+(?=(?:confidence|support|suspicion|likelihood)\b)/gi,'reassess ');
+ if(control||executable.test(text)||mutation.test(operationalText)||hasUnsupportedCertainty(text))fail('generated prose contains executable syntax, an explicit mutation request or unsupported certainty. Use observational diagnostics and conditional explanations.');
 }
 
 const instructions=`LUCID_INVESTIGATION_PLAN_V2

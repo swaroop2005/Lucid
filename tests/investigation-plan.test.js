@@ -10,6 +10,42 @@ function fixture(){
  return {context,plan};
 }
 
+test('negated certainty and evidence reassessment remain observational',()=>{
+ const allowed=[
+  'Do not infer a confirmed cause from a version match alone.',
+  'The historical mismatch does not rule out a current mapping issue.',
+  "Missing records can't rule out the competing explanation.",
+  'This is not a confirmed root cause.',
+  'Increase confidence in that possibility without treating it as confirmed cause.',
+  'Decrease support for the hypothesis while keeping the mechanism uncertain.',
+  'Never assume a proven cause from correlation alone.',
+  'Inspect the logs and compare observed deadlines.',
+  'Increase confidence in the hypothesis and inspect existing records.',
+ ];
+ for(const text of allowed)assert.doesNotThrow(()=>assertPlanProse(text),text);
+});
+
+test('negation never exempts another positive claim or operational instruction',()=>{
+ const rejected=[
+  'This is a confirmed cause.',
+  'The version mismatch rules out a current mapping issue.',
+  'The helper definitely caused the failure.',
+  'Do not infer a confirmed cause; the helper is the root cause.',
+  'It is not a confirmed cause, but the mismatch rules out the alternative.',
+  'Do not infer a confirmed cause. Restart the service.',
+  'Increase confidence by changing the service configuration.',
+  'Increase confidence. Delete the container.',
+  'Increase confidence and restart the service.',
+  'Do not infer a confirmed cause; upgrade the runner.',
+  'The result does not rule out corruption; disable verification.',
+  'Inspect the evidence or delete the container.',
+  'Increase the service timeout.',
+  'Decrease the retry count.',
+  'Not only a confirmed cause, but a proven cause.',
+ ];
+ for(const text of rejected)assert.throws(()=>assertPlanProse(text),/generated prose/,text);
+});
+
 test('raw-primary protocol gives the generator its full shape and parses no secondary extraction',()=>{
  const {context,plan}=fixture(),request=buildInvestigationPlanRequest(context,{rawText:true});
  assert.match(request.query,/LUCID_INVESTIGATION_PLAN_V3_RAW/);
