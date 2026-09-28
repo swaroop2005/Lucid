@@ -44,3 +44,12 @@ test('another active owner disables both preparing and publishing a pending chec
  await page.route('**/api/cloud-workspace',r=>r.fulfill({json:value}));await page.route('**/api/cloud-workspace/*',r=>{actions.push(r.request().url());return r.fulfill({status:409,json:{error:'Wrong owner'}});});
  await page.goto('/#connections');const panel=page.getByRole('region',{name:'Cloud workspace recovery'});await expect(panel.getByRole('button',{name:'Prepare Cloud checkpoint',exact:true})).toBeDisabled();await expect(panel.getByRole('button',{name:/Publish or check checkpoint/})).toBeDisabled();await expect(panel).toContainText('Another editor holds the active handoff');await panel.getByText('Recover on this machine',{exact:true}).click();await panel.getByLabel('Recovery workspace ID',{exact:true}).fill('workspace-one');await panel.getByLabel('Recovery editor ID',{exact:true}).fill('editor-one');await expect(panel.getByRole('button',{name:'Preview Cloud recovery',exact:true})).toBeEnabled();expect(actions).toEqual([]);
 });
+
+
+test('unauthorized checkpoint allowance hides even stale numeric amounts',async({page})=>{
+ const value=initial();value.configured=false;value.budget={authorized:false,reservedUSD:9.25,remainingUSD:12.5,ingestionRemainingUSD:3.75,note:'No matching existing credit authorization is available.'};
+ await page.route('**/api/cloud-workspace',r=>r.fulfill({json:value}));await page.goto('/#connections');
+ const allowance=page.getByRole('region',{name:'Cloud checkpoint allowance'});
+ await expect(allowance).toContainText('Not authorized');await expect(allowance).toContainText('Recorded reservationsUnavailable');await expect(allowance).toContainText('Remaining authorized creditUnavailable');await expect(allowance).toContainText('Remaining ingestion allowanceUnavailable');
+ await expect(allowance).not.toContainText('$');
+});
