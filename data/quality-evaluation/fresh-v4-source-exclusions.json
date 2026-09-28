@@ -1,0 +1,15 @@
+{
+  "evaluation": "hindsight-fresh-v4",
+  "sourceInputsHash": "80e29c2eb33a076db668085eed04c6701837ee306fea6cf544d1e8f5166fb1c5",
+  "reason": "Final frozen new evaluation episodes and verified linked identities; never curate or retain.",
+  "urls": [
+    "https://gitlab.com/gitlab-com/gl-infra/production-engineering/-/issues/28163",
+    "https://gitlab.com/gitlab-com/gl-infra/production-engineering/-/work_items/28163",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/issues/38299",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/issues/39281",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/38299",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/39281",
+    "https://gitlab.com/gitlab-org/gitlab-runner/issues/38299",
+    "https://gitlab.com/gitlab-org/gitlab-runner/issues/39281"
+  ]
+}

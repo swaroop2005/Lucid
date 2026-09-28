@@ -1,0 +1,44 @@
+[
+  {
+    "id": "gitlab-runner-1",
+    "url": "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/1",
+    "title": "\"x509: certificate signed by unknown authority\" error when running job",
+    "body": "Synthetic test fixture: Docker executor fails with x509 certificate signed by unknown authority. Inspect TLS trust context.",
+    "author": "Synthetic test user",
+    "created_at": "2015-04-28T23:30:05.756Z",
+    "updated_at": "2026-03-04T16:21:53.510Z",
+    "state": "closed",
+    "family": "Caching",
+    "labels": "[]",
+    "source": "Synthetic fixture with public-source-shaped URL",
+    "review_status": "indexed"
+  },
+  {
+    "id": "gitlab-runner-1052",
+    "url": "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/1052",
+    "title": "error setting certificate verify locations",
+    "body": "Synthetic test fixture: Windows Shell checkout fails with error setting certificate verify locations.",
+    "author": "Synthetic test user",
+    "created_at": "2016-02-02T18:46:16.771Z",
+    "updated_at": "2020-01-30T15:12:30.078Z",
+    "state": "closed",
+    "family": "Windows execution",
+    "labels": "[]",
+    "source": "Synthetic fixture with public-source-shaped URL",
+    "review_status": "indexed"
+  },
+  {
+    "id": "gitlab-runner-1059",
+    "url": "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/1059",
+    "title": "Certificate verification fails when trying to register a runner",
+    "body": "Synthetic test fixture: registration fails because a certificate is expired or not yet valid.",
+    "author": "Synthetic test user",
+    "created_at": "2016-02-04T23:09:54.346Z",
+    "updated_at": "2022-02-13T17:10:24.274Z",
+    "state": "closed",
+    "family": "Runner lifecycle",
+    "labels": "[]",
+    "source": "Synthetic fixture with public-source-shaped URL",
+    "review_status": "indexed"
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "records": [
+    {
+      "id": "replace-with-unique-episode-id",
+      "title": "Shell jobs fail only when the worker runs as a service",
+      "report": "Jobs exit immediately under systemd but run from an interactive terminal. Trace output reaches a console-cleanup command.",
+      "failureType": "Shell initialization",
+      "executor": "Shell",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "12.0.3",
+        "runner": "12.0.1",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/gitlab-runner-fails-all-jobs-when-running-with-systemd/27828/3",
+        "date": "2019-07-08",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local public-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Primary first-person discussion reviewed through indexed source text. Outcome is reported, not independently reproduced."
+      },
+      "unsuccessfulSteps": [
+        {
+          "step": "Match the interactive PATH and working directory.",
+          "evidence": "The reporter said jobs still failed under the service."
+        },
+        {
+          "step": "Use a repository-specific worker instead of a shared worker.",
+          "evidence": "The same failure persisted."
+        }
+      ],
+      "outcome": {
+        "type": "workaround",
+        "fix": "The reporter removed the non-interactive console cleanup from the worker account\u2019s logout profile.",
+        "cause": "",
+        "verification": "The original reporter marked the issue solved after identifying clear_console in the Debian logout profile.",
+        "limitations": "Historical Debian behavior. Inspect the actual profile; do not run the service as root to bypass the problem."
+      },
+      "partition": "reference"
+    }
+  ]
+}

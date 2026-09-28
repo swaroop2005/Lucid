@@ -1,0 +1,198 @@
+{
+  "status": "source selection ready for independent admission; root owns final experiment freeze",
+  "generatedAt": "2026-09-27T16:11:24.786Z",
+  "providerCalls": 0,
+  "operationalMutation": false,
+  "sourceDatabaseReadOnly": ".data/evidence.sqlite",
+  "sourceCorpusSize": 8348,
+  "learning": [
+    {
+      "id": "L01",
+      "sourceId": "gitlab-runner-39039",
+      "family": "Cache and helper compatibility"
+    },
+    {
+      "id": "L02",
+      "sourceId": "gitlab-runner-30874",
+      "family": "Container image compatibility"
+    },
+    {
+      "id": "L03",
+      "sourceId": "gitlab-runner-28243",
+      "family": "Kubernetes authorization"
+    },
+    {
+      "id": "L04",
+      "sourceId": "gitlab-runner-3497",
+      "family": "Certificate trust"
+    },
+    {
+      "id": "L05",
+      "sourceId": "gitlab-runner-36950",
+      "family": "Container runtime permissions"
+    },
+    {
+      "id": "L06",
+      "sourceId": "gitlab-runner-1554",
+      "family": "Runner lifecycle"
+    },
+    {
+      "id": "L07",
+      "sourceId": "gitlab-runner-39239",
+      "family": "Autoscaler scheduling"
+    },
+    {
+      "id": "L08",
+      "sourceId": "gitlab-runner-1378",
+      "family": "CI configuration"
+    }
+  ],
+  "heldouts": [
+    {
+      "id": "Q01",
+      "sourceId": "gitlab-runner-39193",
+      "family": "Job trace storage"
+    },
+    {
+      "id": "Q02",
+      "sourceId": "gitlab-runner-39494",
+      "family": "Network connectivity"
+    },
+    {
+      "id": "Q03",
+      "sourceId": "gitlab-runner-38871",
+      "family": "Repository and submodules"
+    },
+    {
+      "id": "Q05",
+      "sourceId": "gitlab-runner-39019",
+      "family": "Certificate trust"
+    },
+    {
+      "id": "Q06",
+      "sourceId": "gitlab-runner-39696",
+      "family": "Certificate trust"
+    },
+    {
+      "id": "Q07",
+      "sourceId": "gitlab-runner-38679",
+      "family": "Container runtime permissions"
+    },
+    {
+      "id": "Q08",
+      "sourceId": "gitlab-runner-39022",
+      "family": "Cache configuration"
+    },
+    {
+      "id": "Q10",
+      "sourceId": "gitlab-runner-28981",
+      "family": "Registry authentication"
+    },
+    {
+      "id": "Q11",
+      "sourceId": "gitlab-runner-3659",
+      "family": "Shell execution semantics"
+    },
+    {
+      "id": "Q12",
+      "sourceId": "gitlab-runner-39551",
+      "family": "Container image compatibility"
+    }
+  ],
+  "generationAllowlist": [
+    "learning.json",
+    "inputs.json"
+  ],
+  "hiddenFiles": [
+    "learning-citations.json",
+    "hidden-rubrics.json",
+    "input-provenance.json",
+    "exclusions.json",
+    "cluster-audit.json",
+    "near-duplicate-review.json",
+    "selection-validation.json"
+  ],
+  "learningBytes": 25359,
+  "heldoutFamilies": [
+    "Job trace storage",
+    "Network connectivity",
+    "Repository and submodules",
+    "Certificate trust",
+    "Container runtime permissions",
+    "Cache configuration",
+    "Registry authentication",
+    "Shell execution semantics",
+    "Container image compatibility"
+  ],
+  "predeclaredPlausibleDiagnosticTransferTargets": [
+    {
+      "id": "Q03",
+      "learning": "L04",
+      "scope": "Inspect actual Git/submodule execution context; the heldout metadata failure does not justify a CA fix. Both known scope fields pass existing gates."
+    },
+    {
+      "id": "Q05",
+      "learning": "L04",
+      "scope": "Inspect the actual helper TLS client and CA bundle; UBI-specific proposed remedy needs verification. Unknown original executor/versions remain honestly unknown, not inferred from the workaround."
+    },
+    {
+      "id": "Q12",
+      "learning": "L01/L02",
+      "scope": "Check actual helper manifest/platform rather than trusting tag. Exact reviewed-version gate may exclude both memories; this remains a plausible analogy, not promised retrieval."
+    }
+  ],
+  "limitations": [
+    "Small deliberately selected diagnostic exercise, not a representative benchmark or causal product-quality estimate.",
+    "Assistant source inspection is not independent reproduction or human-confirmed remediation. Mixed-episode and failed-action caveats remain inside retained learning.",
+    "Inputs are reconstructed symptom/environment/attempt cases, not authenticated chronological snapshots: source revision history was unavailable.",
+    "Distinct thread IDs, full-corpus explicit-duplicate closure and public fix-link checks reduce leakage but cannot establish complete semantic independence.",
+    "No heldout source/outcome/citation file may be exposed through generation prompt, memory retention or recall."
+  ],
+  "files": [
+    {
+      "name": "learning.json",
+      "sha256": "03f490f29de27dd4dc96891cacaed3aec9c2927dd7ae1299b99d57cd969e4ab0",
+      "bytes": 28858
+    },
+    {
+      "name": "inputs.json",
+      "sha256": "5c43b1fb3601a61c22116c2226589be1085501546f814a620aff695696cbb9fa",
+      "bytes": 10812
+    },
+    {
+      "name": "learning-citations.json",
+      "sha256": "ca89f93b0d2bb0c5534c6f81b1e6254d858bd2949f49bca8a518d438b3a932f4",
+      "bytes": 12327
+    },
+    {
+      "name": "hidden-rubrics.json",
+      "sha256": "af573640eded894e5ac15b834f95fe9f959a65bfeab014f5e65aa617bcfe05bd",
+      "bytes": 15854
+    },
+    {
+      "name": "input-provenance.json",
+      "sha256": "6dee5cbbfefa1aff583d0dc828a3d1bd4dba22aa20805bce4d06142135c16edf",
+      "bytes": 14299
+    },
+    {
+      "name": "exclusions.json",
+      "sha256": "a7a5ba52e77bbb5232eeccd65fc7e80043f56ac1ec034d1571a73400961c44a8",
+      "bytes": 2752
+    },
+    {
+      "name": "cluster-audit.json",
+      "sha256": "d068de1c49187866049e4f0e41f55690d679b2b2a173a513361aef6fe6810acb",
+      "bytes": 9503
+    },
+    {
+      "name": "near-duplicate-review.json",
+      "sha256": "85d71c61ed5cff5ce9592413763ecc591b9dacc4aaef053a23c3642db2601056",
+      "bytes": 14741
+    },
+    {
+      "name": "selection-validation.json",
+      "sha256": "98e67a0275d8425da4282585f8658fda74cf0f36a6794c786f1a3b9bbd396e66",
+      "bytes": 4084
+    }
+  ]
+}

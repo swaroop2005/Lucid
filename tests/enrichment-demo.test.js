@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {EvidenceStore} from '../server/evidence-store.js';
+import {seedDemoEvidence} from '../server/demo-evidence.js';
+const small=()=>{
+ const records=Array.from({length:3},(_,i)=>({report:{id:`synthetic-${i}`,url:`https://gitlab.com/gitlab-org/gitlab-runner/-/issues/${900000+i}`,title:'Synthetic TLS failure',body:'Synthetic fixture: TLS certificate verification failed.',created_at:'2025-01-01',updated_at:'2025-01-02',state:'opened',family:'TLS',labels:'[]',source:'Synthetic test fixture'},job:{status:'completed',pages:1,updated_at:'2025-01-02',completed_at:'2025-01-02',extraction:{humanReviewed:false,outcome:{confirmed:false,category:'insufficient-evidence',label:'Synthetic unresolved report'}}},notes:[{id:`synthetic-note-${i}`,discussion_id:'synthetic-discussion',body:'Synthetic observation; no outcome established.',url:`https://gitlab.com/gitlab-org/gitlab-runner/-/issues/${900000+i}#note_1`,created_at:'2025-01-01',updated_at:'2025-01-02',system:0,truncated:0,fetched_at:'2025-01-02'}]}));
+ return {formatVersion:1,records,manifest:{reports:3,notes:3},generatedAt:'2025-01-02'};
+};
+test('explicit evidence snapshot seeds an empty database and remains unconfirmed',()=>{const s=new EvidenceStore(':memory:');try{assert.equal(seedDemoEvidence(s,small()).seeded,true);assert.equal(s.stats().indexed,3);assert.equal(s.enrichmentStats().notes,3);assert.equal(s.enrichmentStats().confirmed,0);}finally{s.close();}});
+test('starter is idempotent and preserves existing evidence',()=>{const s=new EvidenceStore(':memory:');try{seedDemoEvidence(s,small());const before=s.db.prepare('SELECT * FROM reports ORDER BY id').all();assert.equal(seedDemoEvidence(s,small()).seeded,false);assert.deepEqual(s.db.prepare('SELECT * FROM reports ORDER BY id').all(),before);}finally{s.close();}});
+test('bad counts, truncated threads and partial transactions never create a misleading starter',()=>{for(const mutate of [d=>{d.manifest.notes++;},d=>{d.records[0].notes[0].truncated=1;},d=>{d.records[1].report.id=d.records[0].report.id;}]){const s=new EvidenceStore(':memory:'),data=small();try{mutate(data);assert.throws(()=>seedDemoEvidence(s,data));assert.equal(s.stats().indexed,0);assert.equal(s.enrichmentStats().notes,0);}finally{s.close();}}});

@@ -1,0 +1,680 @@
+[
+  {
+    "id": "cloudflare-2019",
+    "company": "Cloudflare",
+    "initial": "C",
+    "color": "coral",
+    "date": "2 July 2019",
+    "duration": "27 minutes",
+    "category": "Change safety",
+    "title": "One rule. A global outage.",
+    "subtitle": "A firewall rule exhausted CPUs across Cloudflare’s network. The recovery revealed a second problem: the tools to fix it depended on the service that was down.",
+    "service": "Web traffic & WAF",
+    "vendor": "Internal WAF / regular-expression engine",
+    "url": "https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/",
+    "report": "Websites behind Cloudflare returned 502 errors. A newly deployed WAF rule caused excessive regular-expression backtracking and saturated CPUs globally.",
+    "evidence": "Live CPU inspection, traces and logs pointed to the WAF. Functional tests had passed; they had not measured runaway CPU consumption. Global rule distribution widened the impact.",
+    "attempt": "Internal access tooling was also affected, slowing the team’s access to recovery controls.",
+    "recovery": "The team disabled the WAF globally to restore traffic, isolated the problematic rule and restored protection safely.",
+    "learning": "Test computational cost as well as correctness. Stage globally distributed rules and maintain recovery access independent of the affected service.",
+    "timeline": [
+      [
+        "13:42 UTC",
+        "New WAF rule deployed"
+      ],
+      [
+        "13:45 UTC",
+        "First monitoring alert"
+      ],
+      [
+        "14:00 UTC",
+        "WAF identified as the cause"
+      ],
+      [
+        "Recovery",
+        "WAF disabled; problematic rule isolated"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "Cloudflare",
+    "sourcePublisher": "Cloudflare"
+  },
+  {
+    "id": "github-2018",
+    "company": "GitHub",
+    "initial": "G",
+    "color": "lavender",
+    "date": "21 October 2018",
+    "duration": "24 h 11 min",
+    "category": "Database recovery",
+    "title": "43 seconds that changed a day.",
+    "subtitle": "A short network partition led to a database topology the application could not serve reliably. Restoring service meant protecting writes before chasing speed.",
+    "service": "GitHub metadata & background jobs",
+    "vendor": "MySQL / Orchestrator",
+    "url": "https://github.blog/news-insights/company-news/oct21-post-incident-analysis/",
+    "report": "A 43-second network partition triggered database failover to a remote region. GitHub experienced degraded service for 24 hours and 11 minutes.",
+    "evidence": "Both regions held writes that had not replicated. Cross-region application latency was unacceptable, but immediate failback risked data integrity.",
+    "attempt": "Initial recovery estimates were too optimistic: replicas caught up more slowly under production load. Additional read replicas reduced that pressure.",
+    "recovery": "GitHub restored backups, synchronized replicas, returned to a stable database topology and processed queued work. Some operations were paused during recovery.",
+    "learning": "Validate failover against application latency and consistency needs. Exercise restoration at production scale and communicate uncertainty in recovery estimates.",
+    "timeline": [
+      [
+        "22:52 UTC",
+        "Network partition begins"
+      ],
+      [
+        "Failover",
+        "Database primaries move regions"
+      ],
+      [
+        "Recovery",
+        "Backups restored and replicas synchronized"
+      ],
+      [
+        "Afterward",
+        "Backlogged work processed"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "GitHub",
+    "sourcePublisher": "GitHub"
+  },
+  {
+    "id": "slack-2021",
+    "company": "Slack",
+    "initial": "S",
+    "color": "moss",
+    "date": "4 January 2021",
+    "duration": "Multi-hour disruption",
+    "category": "Cascading failures",
+    "title": "When adding capacity wasn’t enough.",
+    "subtitle": "Network saturation set off a chain of scaling and provisioning failures. Each recovery step needed another part of the system to work.",
+    "service": "Slack messaging",
+    "vendor": "AWS Transit Gateway / EC2",
+    "url": "https://slack.engineering/slacks-outage-on-january-4th-2021/",
+    "report": "Packet loss during a traffic surge disrupted Slack. Transit Gateway saturation and internal provisioning constraints combined into a wider outage.",
+    "evidence": "Network waits lowered CPU readings and encouraged downscaling. Later scaling hit provisioning file-descriptor and instance-quota limits; new machines could not serve traffic.",
+    "attempt": "Rolling back the day’s changes did not help. Some monitoring dashboards were unavailable, although direct metrics queries and logs remained useful.",
+    "recovery": "Slack disabled downscaling, repaired provisioning and removed broken instances. Web capacity recovered before expanded network capacity resolved the remaining degradation.",
+    "learning": "Watch dependency saturation alongside CPU. Test how scaling, provisioning and monitoring behave when the network is degraded.",
+    "timeline": [
+      [
+        "07:01–07:15 PST",
+        "Large scaling attempt"
+      ],
+      [
+        "08:15 PST",
+        "Provisioning recovers"
+      ],
+      [
+        "09:15 PST",
+        "Web capacity sufficient; service degraded"
+      ],
+      [
+        "10:40 PST",
+        "Network capacity restores normal operation"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "Slack",
+    "sourcePublisher": "Slack"
+  },
+  {
+    "id": "atlassian-2022",
+    "company": "Atlassian",
+    "initial": "A",
+    "color": "sand",
+    "date": "5 April 2022",
+    "duration": "Up to 14 days",
+    "category": "Recovery readiness",
+    "title": "The wrong IDs. The right lesson.",
+    "subtitle": "A maintenance script deleted entire sites instead of an obsolete app. Recovery exposed the difference between restoring one customer and hundreds.",
+    "service": "Cloud customer sites",
+    "vendor": "Internal maintenance & recovery tooling",
+    "url": "https://www.atlassian.com/blog/how-we-build/post-incident-review-april-2022-outage",
+    "report": "A maintenance script used site identifiers where app identifiers were intended. It deleted 883 sites affecting 775 customers.",
+    "evidence": "Peer review checked the endpoint and procedure but missed the identifier semantics. Standard deletion paths did not trigger the expected outage detection.",
+    "attempt": "Existing recovery procedures handled individual sites. Restoring hundreds required new automation and parallel recovery work.",
+    "recovery": "The first sites returned on 8 April; all affected sites were restored by 18 April. The report describes safeguards and disaster-recovery improvements.",
+    "learning": "Make destructive operations reversible, validate identifier meaning and rehearse recovery at the largest plausible incident scale.",
+    "timeline": [
+      [
+        "5 Apr · 07:38 UTC",
+        "Deletion script starts"
+      ],
+      [
+        "5 Apr · 07:46 UTC",
+        "First customer support report"
+      ],
+      [
+        "8 April",
+        "First sites restored"
+      ],
+      [
+        "18 April",
+        "All affected sites restored"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "Atlassian",
+    "sourcePublisher": "Atlassian"
+  },
+  {
+    "id": "gitlab-2017",
+    "company": "GitLab",
+    "initial": "G",
+    "color": "coral",
+    "date": "31 January 2017",
+    "duration": "About 18 hours",
+    "category": "Backup verification",
+    "title": "A backup is only a promise until restored.",
+    "subtitle": "An accidental deletion exposed silent backup failures and a slow recovery path.",
+    "service": "GitLab.com database",
+    "vendor": "PostgreSQL / Azure infrastructure",
+    "url": "https://about.gitlab.com/blog/postmortem-of-database-outage-of-january-31/",
+    "report": "While repairing replication, an engineer removed data on the primary database instead of the secondary. GitLab.com went offline and some recent database changes were lost.",
+    "evidence": "Logical backups had failed because the dump utility and database versions differed. Failure emails were rejected, and restoration testing had no clear owner.",
+    "attempt": "The secondary could not provide recovery because it had already been cleared during replication repair. Standard backups were unusable.",
+    "recovery": "A staging snapshot supplied recoverable data. Slow storage extended copying and restoration; repository and wiki data were stored separately and were not lost.",
+    "learning": "Give restoration tests an owner. Verify backup outputs and alert delivery, protect destructive commands and measure recovery speed with realistic data volumes.",
+    "timeline": [
+      [
+        "31 January",
+        "Replication trouble escalates"
+      ],
+      [
+        "Accidental deletion",
+        "Primary database data removed"
+      ],
+      [
+        "Recovery",
+        "Staging snapshot copied"
+      ],
+      [
+        "1 February",
+        "Database and webhooks restored"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "GitLab",
+    "sourcePublisher": "GitLab"
+  },
+  {
+    "id": "fastly-2021",
+    "company": "Fastly",
+    "initial": "F",
+    "color": "sand",
+    "date": "8 June 2021",
+    "duration": "95% normal within 49 min",
+    "category": "Configuration isolation",
+    "title": "A valid change exposed a hidden bug.",
+    "subtitle": "A customer configuration activated a latent defect in the edge network.",
+    "service": "Global edge network",
+    "vendor": "Fastly edge software",
+    "url": "https://www.fastly.com/blog/summary-of-june-8-outage",
+    "report": "A valid customer configuration triggered a software bug and caused 85% of Fastly’s network to return errors.",
+    "evidence": "The defect had entered a software rollout on 12 May. It required a specific configuration and circumstances to activate.",
+    "attempt": "The published summary does not describe an unsuccessful remediation attempt. Detection took one minute; identifying the triggering configuration took longer.",
+    "recovery": "Fastly disabled the configuration, restoring normal operation to 95% of the network within 49 minutes. Deployment of a permanent software fix began later that day.",
+    "learning": "A valid configuration can still expose unsafe software behavior. Test combinations of settings and constrain the impact of a single configuration change.",
+    "timeline": [
+      [
+        "09:47 UTC",
+        "Disruption begins"
+      ],
+      [
+        "09:48 UTC",
+        "Monitoring identifies disruption"
+      ],
+      [
+        "10:27 UTC",
+        "Triggering configuration identified"
+      ],
+      [
+        "17:25 UTC",
+        "Permanent fix rollout begins"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "Fastly",
+    "sourcePublisher": "Fastly"
+  },
+  {
+    "id": "roblox-2021",
+    "company": "Roblox",
+    "initial": "R",
+    "color": "lavender",
+    "date": "28 October 2021",
+    "duration": "73 hours",
+    "category": "Dependency bootstrapping",
+    "title": "The system that everything needed.",
+    "subtitle": "Two deep performance problems in service discovery turned recovery into a careful sequence of dependencies.",
+    "service": "Roblox platform",
+    "vendor": "HashiCorp Consul / BoltDB",
+    "url": "https://about.roblox.com/newsroom/2022/01/roblox-return-to-service-10-28-10-31-2021",
+    "report": "Roblox was unavailable for 73 hours after its shared Consul cluster became unhealthy.",
+    "evidence": "Consul streaming contention and a BoltDB performance pathology combined under unusual load. Dependent monitoring systems lost visibility during investigation.",
+    "attempt": "Faster hardware, a snapshot reset and reduced service traffic did not independently resolve the problem.",
+    "recovery": "The team disabled streaming, controlled slow leaders, repaired cache deployment and gradually restored dependent services before admitting players.",
+    "learning": "Avoid circular recovery dependencies. Test cold startup, keep monitoring independent and reproduce the combination of traffic volume and churn found in production.",
+    "timeline": [
+      [
+        "28 October",
+        "Consul performance deteriorates"
+      ],
+      [
+        "29 October",
+        "Recovery attempts fail"
+      ],
+      [
+        "30 October",
+        "Underlying performance issues isolated"
+      ],
+      [
+        "31 October",
+        "Caches rebuilt; players return"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "Roblox",
+    "sourcePublisher": "Roblox"
+  },
+  {
+    "id": "dropbox-2014",
+    "company": "Dropbox",
+    "initial": "D",
+    "color": "moss",
+    "date": "10 January 2014",
+    "duration": "Core service restored 12 Jan",
+    "category": "Destructive-operation checks",
+    "title": "When redundancy shares the same risk.",
+    "subtitle": "A maintenance script reached active database machines, including replicas of the same data.",
+    "service": "Dropbox service metadata",
+    "vendor": "MySQL / internal maintenance tooling",
+    "url": "https://dropbox.tech/infrastructure/outage-post-mortem",
+    "report": "A scheduled operating-system upgrade reinstalled active database machines after a script incorrectly classified them as safe. Some primary–replica pairs were affected.",
+    "evidence": "Remote checks did not reliably identify production state. File contents were separate from the affected metadata databases.",
+    "attempt": "Replica redundancy could not cover correlated failures. Large databases made conventional backup restoration slow.",
+    "recovery": "Backups restored most functionality within three hours; core service fully returned on Sunday. Dropbox added local safety checks and parallel binary-log replay.",
+    "learning": "Require the target machine to reject destructive work when it is active. Test correlated replica failures and large-dataset restore times.",
+    "timeline": [
+      [
+        "10 Jan · 17:30 PT",
+        "Planned maintenance"
+      ],
+      [
+        "Incident",
+        "Active databases reinstalled"
+      ],
+      [
+        "Within 3 hours",
+        "Most functionality restored"
+      ],
+      [
+        "12 Jan · 16:40 PT",
+        "Core service fully restored"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "Dropbox",
+    "sourcePublisher": "Dropbox"
+  },
+  {
+    "id": "aws-2021",
+    "company": "AWS",
+    "initial": "A",
+    "color": "sand",
+    "date": "7 December 2021",
+    "duration": "Recovery varied by service",
+    "category": "Retry amplification",
+    "title": "Retries that made the queue longer.",
+    "subtitle": "Internal network congestion impaired both service management and the tools needed to recover.",
+    "service": "US-EAST-1 control planes",
+    "vendor": "AWS internal networking",
+    "url": "https://aws.amazon.com/message/12721/",
+    "report": "An automated scaling activity triggered a connection surge that overwhelmed devices between AWS internal and main networks.",
+    "evidence": "Delayed connections caused more retries. A latent client backoff issue sustained congestion; monitoring and deployment tools were also impaired.",
+    "attempt": "Rerouting internal DNS restored name resolution but did not remove the wider network congestion.",
+    "recovery": "Operators isolated heavy traffic, disabled some services and added capacity. Network devices recovered by 14:22 PST; individual services and backlogs recovered later.",
+    "learning": "Test retry behavior under overload. Keep recovery tooling usable during control-plane impairment and distinguish running workloads from resource-management availability.",
+    "timeline": [
+      [
+        "07:30 PST",
+        "Connection surge begins"
+      ],
+      [
+        "09:28 PST",
+        "Internal DNS recovers"
+      ],
+      [
+        "14:22 PST",
+        "Network devices recover"
+      ],
+      [
+        "Later",
+        "Service-specific backlogs clear"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "AWS",
+    "sourcePublisher": "AWS"
+  },
+  {
+    "id": "reddit-2023",
+    "company": "Reddit",
+    "initial": "R",
+    "color": "coral",
+    "date": "14 March 2023",
+    "duration": "314 minutes",
+    "category": "Upgrade compatibility",
+    "title": "A label change with a wide reach.",
+    "subtitle": "An undocumented networking dependency made a tested Kubernetes upgrade fail in production.",
+    "service": "Reddit legacy application cluster",
+    "vendor": "Kubernetes 1.23 → 1.24 / Calico",
+    "url": "https://www.reddit.com/r/RedditEng/comments/11xx5o0/you_broke_reddit_the_piday_outage/",
+    "report": "A Kubernetes upgrade disrupted networking in a critical legacy cluster, affecting most Reddit user flows.",
+    "evidence": "Calico route-reflector selectors depended on a node label removed by the upgrade. This special configuration was not recorded in version control.",
+    "attempt": "Restarting components and removing a failing admission webhook did not restore the cluster. Recovery instructions also needed updates during the incident.",
+    "recovery": "The team restored the control plane from backup. The precise route-reflector dependency was understood after service restoration.",
+    "learning": "Inventory configuration outside standard deployment tools. Test the production topology and keep restore procedures aligned with the current runtime.",
+    "timeline": [
+      [
+        "After 19:00 UTC",
+        "Cluster upgrade starts"
+      ],
+      [
+        "Investigation",
+        "Networking and metrics fail"
+      ],
+      [
+        "After two hours",
+        "Backup restoration chosen"
+      ],
+      [
+        "After recovery",
+        "Hidden label dependency identified"
+      ]
+    ],
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "affectedOrganization": "Reddit",
+    "sourcePublisher": "Reddit"
+  },
+  {
+    "id": "meta-2021",
+    "company": "Meta",
+    "initial": "M",
+    "color": "lavender",
+    "date": "4 October 2021",
+    "duration": "Global disruption; phased recovery",
+    "category": "Recovery access",
+    "title": "The network that recovery needed.",
+    "subtitle": "A backbone command also removed the paths engineers needed to restore service.",
+    "service": "Facebook platforms and internal tooling",
+    "vendor": "Internal backbone / BGP / DNS",
+    "url": "https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/",
+    "report": "A maintenance command disconnected the global backbone. An audit-tool defect failed to block it.",
+    "evidence": "DNS servers withdrew BGP advertisements when datacenters became unreachable, although DNS itself was running.",
+    "attempt": "Normal and out-of-band access failed. DNS loss also broke internal investigation tools; secure physical access took time.",
+    "recovery": "Onsite engineers restored the backbone, then controlled service startup to avoid overwhelming caches and power systems.",
+    "learning": "Exercise independent recovery access and global failure drills. Validate command safeguards and the load of cold recovery.",
+    "timeline": [
+      [
+        "Maintenance",
+        "Backbone connections removed"
+      ],
+      [
+        "Cascade",
+        "DNS advertisements withdrawn"
+      ],
+      [
+        "Onsite response",
+        "Engineers restore connectivity"
+      ],
+      [
+        "Recovery",
+        "Services brought back with controlled load"
+      ]
+    ],
+    "affectedOrganization": "Facebook (now Meta)",
+    "sourcePublisher": "Meta Engineering",
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "reviewMethod": "AI-assisted primary-source reading; not independent incident confirmation or human operational approval"
+  },
+  {
+    "id": "discord-2023",
+    "company": "Discord",
+    "initial": "D",
+    "color": "coral",
+    "date": "6 November 2023",
+    "duration": "Approximately 50 minutes",
+    "category": "Quorum and maintenance",
+    "title": "One zone down, one disk degraded.",
+    "subtitle": "A routine upgrade combined with weak storage and cold caches to overload authentication.",
+    "service": "Authentication and messaging access",
+    "vendor": "ScyllaDB / zonal storage / RAID",
+    "url": "https://discord.com/blog/authentication-outage",
+    "report": "Authentication failed during an OS upgrade of the ScyllaDB cluster.",
+    "evidence": "One zone was offline; another had a degraded disk and cold row caches. Client retries amplified overload.",
+    "attempt": "Disabling typing and read events improved availability only partially. Immediate node restarts risked breaking quorum.",
+    "recovery": "The upgrading zone returned at 11:41 PST; sequential restarts restored service by 11:43. Discord expanded capacity and replaced degraded disks.",
+    "learning": "Check cache readiness and disk health before advancing maintenance. Leave capacity for an additional failure and bound retry load.",
+    "timeline": [
+      [
+        "10:52 PST",
+        "Next zone drained; outage begins"
+      ],
+      [
+        "11:05 PST",
+        "Optional events disabled"
+      ],
+      [
+        "11:41 PST",
+        "Upgraded zone returns"
+      ],
+      [
+        "11:43 PST",
+        "Service recovers"
+      ]
+    ],
+    "affectedOrganization": "Discord",
+    "sourcePublisher": "Discord",
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "reviewMethod": "AI-assisted primary-source reading; not independent incident confirmation or human operational approval"
+  },
+  {
+    "id": "datadog-2023",
+    "company": "Datadog",
+    "initial": "D",
+    "color": "moss",
+    "date": "8 March 2023",
+    "duration": "Services restored 9 March; backfill 10 March",
+    "category": "Hidden update channels",
+    "title": "Separate regions, one hidden trigger.",
+    "subtitle": "A legacy update schedule bypassed staged deployment and disrupted several regions together.",
+    "service": "Monitoring, ingestion and APIs",
+    "vendor": "Ubuntu 22.04 / systemd v249 / Cilium",
+    "url": "https://www.datadoghq.com/blog/2023-03-08-multiregion-infrastructure-connectivity-issue/",
+    "report": "An automatic security update restarted systemd-networkd, deleting Cilium-managed routes and disconnecting nodes across five regions.",
+    "evidence": "The failure required restarting networking on running nodes; normal boot order did not reproduce it. A legacy update channel synchronized impact.",
+    "attempt": "Recovery required rebuilding capacity before processing real-time traffic and historical backlog; web access returned before all services.",
+    "recovery": "Datadog restored services, backfilled data, disabled the redundant update channel and changed networkd configuration to preserve routes.",
+    "learning": "Audit every update path and test in-place service restarts. Report live-service recovery separately from historical-data completeness.",
+    "timeline": [
+      [
+        "8 Mar · 06:03 UTC",
+        "Service disruption begins"
+      ],
+      [
+        "8 Mar · 09:13 UTC",
+        "Web access returns"
+      ],
+      [
+        "9 Mar · 08:58 UTC",
+        "All services operational"
+      ],
+      [
+        "10 Mar · 06:25 UTC",
+        "Historical backfill complete"
+      ]
+    ],
+    "affectedOrganization": "Datadog",
+    "sourcePublisher": "Datadog",
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "reviewMethod": "AI-assisted primary-source reading; not independent incident confirmation or human operational approval"
+  },
+  {
+    "id": "google-2020",
+    "company": "Google",
+    "initial": "G",
+    "color": "sand",
+    "date": "14 December 2020",
+    "duration": "47 minutes; some services recovered later",
+    "category": "Quota migration",
+    "title": "Zero reported usage, real dependency.",
+    "subtitle": "An incomplete quota migration reduced the capacity of a shared identity service.",
+    "service": "Google account authentication",
+    "vendor": "User ID Service / quota automation / Paxos",
+    "url": "https://status.cloud.google.com/incident/zall/20013",
+    "report": "Google services requiring user OAuth authentication became unavailable. Cloud service accounts continued operating.",
+    "evidence": "Old quota logic reported zero usage; expiry of a grace period reduced database quota, blocked writes and made authentication reads stale.",
+    "attempt": "Cached errors and service backlogs extended some symptoms after identity recovery. Support tooling was also impaired.",
+    "recovery": "Engineers disabled quota enforcement in one datacenter, then globally; authentication errors normalized by 04:33 Pacific.",
+    "learning": "Test migration overlap and zero-load safeguards. Separate identity recovery from downstream recovery, and keep customer communications usable.",
+    "timeline": [
+      [
+        "03:46 Pacific",
+        "Authentication errors begin"
+      ],
+      [
+        "04:22 Pacific",
+        "Single-datacenter mitigation"
+      ],
+      [
+        "04:27 Pacific",
+        "Mitigation applied globally"
+      ],
+      [
+        "04:33 Pacific",
+        "Identity error rates normalize"
+      ]
+    ],
+    "affectedOrganization": "Google services",
+    "sourcePublisher": "Google Cloud",
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "reviewMethod": "AI-assisted primary-source reading; not independent incident confirmation or human operational approval"
+  },
+  {
+    "id": "twilio-2020",
+    "company": "Twilio",
+    "initial": "T",
+    "color": "lavender",
+    "date": "19 July 2020",
+    "duration": "Origin repaired same day; caches up to 24 hours",
+    "category": "Artifact integrity",
+    "title": "The troubleshooting permission that remained.",
+    "subtitle": "An old permission change left a public SDK artifact writable.",
+    "service": "TaskRouter JavaScript SDK v1.20",
+    "vendor": "AWS S3 / CDN / browser cache",
+    "url": "https://www.twilio.com/en-us/blog/company/communications/incident-report-taskrouter-js-sdk-july-2020",
+    "report": "An attacker modified the publicly hosted TaskRouter v1.20 SDK. Twilio Flex used a different bundled SDK and was unaffected.",
+    "evidence": "The S3 path permitted public writes after a build-troubleshooting change. Twilio reported no evidence of customer-data access, not proof of zero individual impact.",
+    "attempt": "Replacing the origin file did not immediately remove copies from CDN and browser caches.",
+    "recovery": "Twilio restricted bucket permissions, replaced the artifact and audited other buckets. Affected downloaded copies required replacement.",
+    "learning": "Expire temporary permissions, verify artifact integrity and account for cached distribution during remediation.",
+    "timeline": [
+      [
+        "13:12 PDT",
+        "Modified artifact uploaded"
+      ],
+      [
+        "Around 21:20 PDT",
+        "Alert received"
+      ],
+      [
+        "Around 22:30 PDT",
+        "Origin artifact replaced"
+      ],
+      [
+        "Follow-up",
+        "Bucket audit and integrity guidance"
+      ]
+    ],
+    "affectedOrganization": "Users of TaskRouter JS SDK v1.20",
+    "sourcePublisher": "Twilio",
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "reviewMethod": "AI-assisted primary-source reading; not independent incident confirmation or human operational approval"
+  },
+  {
+    "id": "digitalocean-2019",
+    "company": "DigitalOcean",
+    "initial": "D",
+    "color": "coral",
+    "date": "29–31 May 2019",
+    "duration": "Two account locks over three days",
+    "category": "Support escalation",
+    "title": "An unlock without the missing safeguard.",
+    "subtitle": "A false positive returned because the first support intervention did not update automation.",
+    "service": "Raisup account and Droplets",
+    "vendor": "DigitalOcean anti-fraud automation / support workflow",
+    "url": "https://www.digitalocean.com/blog/an-update-on-last-weeks-customer-shutdown-incident",
+    "report": "DigitalOcean identified Raisup as the customer whose legitimate compute activity triggered account locks and resource shutdowns.",
+    "evidence": "High CPU use and absent payment history triggered anti-fraud automation. The initial unlock omitted the required safety flag.",
+    "attempt": "Automation locked the account again; a later review incorrectly denied reactivation, extending the disruption.",
+    "recovery": "Further escalation restored access and resources and applied the safeguards. DigitalOcean proposed peer review and improved support escalation.",
+    "learning": "Record why an exception was approved and update the mechanism that caused it. Prioritize account-lock appeals and preserve context across responders.",
+    "timeline": [
+      [
+        "29 May · 18:24 UTC",
+        "Initial account lock"
+      ],
+      [
+        "30 May · 06:43 UTC",
+        "Unlock without safety flag"
+      ],
+      [
+        "30 May · 09:49 UTC",
+        "Second automated lock"
+      ],
+      [
+        "31 May · 19:21 UTC",
+        "Access and resources restored"
+      ]
+    ],
+    "affectedOrganization": "Raisup",
+    "sourcePublisher": "DigitalOcean",
+    "reviewedAt": "2026-09-27",
+    "reviewStatus": "source-reviewed",
+    "outcomeStatus": "publisher-reported",
+    "reviewMethod": "AI-assisted primary-source reading; not independent incident confirmation or human operational approval"
+  }
+]

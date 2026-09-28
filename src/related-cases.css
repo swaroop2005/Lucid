@@ -1,0 +1,19 @@
+.related-cases{background:var(--panel);border:1px solid var(--divider);border-radius:5px;padding:17px;min-width:0;color:var(--text)}
+.related-cases-heading{display:flex;align-items:center;gap:8px;color:var(--link)}
+.related-cases-heading h2{font-size:14px;line-height:1.5;margin:0;color:var(--text);font-weight:600}
+.related-cases-intro,.related-cases-state,.related-cases-footnote{font-size:11px;line-height:1.65;color:var(--text-secondary);margin:9px 0 0}
+.related-cases-state{padding:12px 0;font-size:12px}
+.related-case-results{list-style:none;padding:0;margin:4px 0 0}
+.related-case-results>li{padding:15px 0;border-bottom:1px solid var(--divider);overflow-wrap:anywhere}
+.related-case-source,.related-case-context{font-size:10px;line-height:1.6;color:var(--text-secondary)}
+.related-case-title{display:block;font-size:13px;line-height:1.55;color:var(--link);font-weight:600;margin:5px 0;text-decoration:none}
+.related-case-title:hover{text-decoration:underline;text-underline-offset:3px}
+.related-case-excerpt{font-size:12px;line-height:1.65;margin:5px 0 7px;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.related-case-outcome{font-size:11px;color:var(--text);line-height:1.6;margin-top:6px}
+.related-case-results small{display:block;font-size:10px;line-height:1.6;color:var(--text-secondary);margin-top:4px}
+.related-cases-search{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:36px;margin-top:9px;color:var(--link);font-size:12px}
+.historical-desk{grid-template-columns:290px minmax(0,1fr) 280px}
+.history-related{height:100%;overflow:auto;min-width:0}
+@media(min-width:1600px){.historical-desk{grid-template-columns:330px minmax(0,1fr) 310px}}
+@media(max-width:1200px) and (min-width:681px){.historical-desk{grid-template-columns:270px minmax(0,1fr);height:auto}.history-queue{grid-row:1/3;height:calc(100dvh - 290px);min-height:500px;position:sticky;top:12px}.historical-record{height:auto;max-height:calc(100dvh - 290px);min-height:450px}.history-related{grid-column:2;height:auto;overflow:visible}}
+@media(max-width:680px){.history-related{height:auto;overflow:visible;margin-top:14px}.related-cases{padding:16px}.related-case-title{font-size:14px;padding:3px 0}.related-case-source,.related-case-context,.related-case-results small{font-size:11px}.related-cases-search{min-height:44px}.related-cases-intro,.related-cases-footnote{font-size:12px}}

@@ -1,0 +1,700 @@
+{
+  "records": [
+    {
+      "id": "shell-profile-2019",
+      "title": "Shell jobs fail only when the worker runs as a service",
+      "report": "Jobs exit immediately under systemd but run from an interactive terminal. Trace output reaches a console-cleanup command.",
+      "failureType": "Shell initialization",
+      "executor": "Shell",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "12.0.3",
+        "runner": "12.0.1",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/gitlab-runner-fails-all-jobs-when-running-with-systemd/27828/3",
+        "date": "2019-07-08",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local public-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Primary first-person discussion reviewed through indexed source text. Outcome is reported, not independently reproduced."
+      },
+      "unsuccessfulSteps": [
+        {
+          "step": "Match the interactive PATH and working directory.",
+          "evidence": "The reporter said jobs still failed under the service."
+        },
+        {
+          "step": "Use a repository-specific worker instead of a shared worker.",
+          "evidence": "The same failure persisted."
+        }
+      ],
+      "outcome": {
+        "type": "workaround",
+        "fix": "The reporter removed the non-interactive console cleanup from the worker account\u2019s logout profile.",
+        "cause": "",
+        "verification": "The original reporter marked the issue solved after identifying clear_console in the Debian logout profile.",
+        "limitations": "Historical Debian behavior. Inspect the actual profile; do not run the service as root to bypass the problem."
+      }
+    },
+    {
+      "id": "apache-routing-2019",
+      "title": "The web UI works over HTTPS but build jobs cannot connect",
+      "report": "A self-managed installation behind Apache is accessible in the browser, while its Docker worker fails to run a simple job.",
+      "failureType": "Proxy / TLS routing",
+      "executor": "Docker",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/configuring-ci-with-gitlab-https-access-using-apache/29202/2",
+        "date": "2019-08-21",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local public-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Primary first-person discussion reviewed through indexed source text. Outcome is reported, not independently reproduced."
+      },
+      "unsuccessfulSteps": [
+        {
+          "step": "Pass the certificate full chain to the worker.",
+          "evidence": "The reported error changed, but the job still did not work."
+        }
+      ],
+      "outcome": {
+        "type": "workaround",
+        "fix": "The reporter corrected Apache\u2019s upstream port and the application\u2019s matching local listener.",
+        "cause": "",
+        "verification": "The reporter explicitly confirmed recovery after aligning ports 8080 and 8181.",
+        "limitations": "The particular port values are historical configuration details, not universal defaults. Confirm the current routing before changes."
+      }
+    },
+    {
+      "id": "registration-mount-2022",
+      "title": "A newly registered container worker never connects",
+      "report": "Registration succeeds, but the worker remains disconnected and job polling reports forbidden.",
+      "failureType": "Runner registration",
+      "executor": "Docker",
+      "hosting": "Unknown",
+      "versions": {
+        "server": "",
+        "runner": "12.9.1",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/gitlab-runner-new-runner-has-not-connected-yet/63780/4",
+        "date": "2022-01-07",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local public-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Primary first-person discussion reviewed through indexed source text. Outcome is reported, not independently reproduced."
+      },
+      "unsuccessfulSteps": [
+        {
+          "step": "Replace the stored worker token with the website registration token.",
+          "evidence": "The reporter identified that edit as corrupting the configuration."
+        }
+      ],
+      "outcome": {
+        "type": "workaround",
+        "fix": "The reporter registered again and started the container with the correct persistent configuration mount.",
+        "cause": "",
+        "verification": "Original poster confirmed the connection worked after restoring the mount and re-registering.",
+        "limitations": "Do not substitute registration tokens for issued worker credentials. Source logs show a historical 12.9.1 image; deployment version applicability must be checked."
+      }
+    },
+    {
+      "id": "incomplete-upgrade-2024",
+      "title": "Workers stop polling after a server upgrade",
+      "report": "After upgrading a self-managed server, existing workers receive forbidden responses and jobs no longer run.",
+      "failureType": "Upgrade",
+      "executor": "Unknown",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "17.0.0",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/ce-edition-upgraded-to-17-0-0-from-15-11-and-now-no-runner-works/106747/10",
+        "date": "2024-06-28",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local public-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Primary first-person discussion reviewed through indexed source text. Outcome is reported, not independently reproduced."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "The reporter completed reconfiguration after addressing a KAS configuration problem, then upgraded to 17.1.",
+        "cause": "",
+        "verification": "The original reporter stated that existing jobs resumed. Several changes were made, so the individual effective step is not isolated.",
+        "limitations": "This is a multi-change recovery report. Disabling KAS is inappropriate when Kubernetes-agent functionality is required. Do not infer that matching versions alone fixed authentication."
+      }
+    },
+    {
+      "id": "service-volumes-2023",
+      "title": "Files visible in a build are missing inside its service container",
+      "report": "A Docker Compose setup works locally, but CI service containers cannot find configuration files visible to the job.",
+      "failureType": "Service volumes",
+      "executor": "Docker",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/docker-compose-works-fine-locally-but-not-in-ci-cd/93416/2",
+        "date": "2023-10-04",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local public-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Primary first-person discussion reviewed through indexed source text. Outcome is reported, not independently reproduced."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "The reporter aligned the shared build directory and volume mappings so service containers could access the files.",
+        "cause": "",
+        "verification": "Original poster reported that the workflow ran after configuring shared storage.",
+        "limitations": "Their configuration also used privileged execution and a Docker socket. Those powerful settings are not a general recommendation; assess the required isolation before reuse."
+      }
+    },
+    {
+      "id": "windows-upload-mtu-2023",
+      "title": "Large output uploads fail from Windows containers",
+      "report": "Large artifact uploads fail with a connection reset in a Windows container, while a PowerShell worker succeeds.",
+      "failureType": "Network transport",
+      "executor": "Docker",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/error-uploading-artifacts-as-archive-to-coordinator/87474/2",
+        "date": "2023-06-02",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local public-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Primary first-person discussion reviewed through indexed source text. Outcome is reported, not independently reproduced."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "The reporter changed the Windows container MTU from 1350 to 1500.",
+        "cause": "",
+        "verification": "The original poster said the change appeared to resolve the upload issue; confirmation is qualified.",
+        "limitations": "Do not copy this MTU into another network. Measure the actual path and container network; the report establishes a workaround only."
+      }
+    },
+    {
+      "id": "gcs-secret-key-2019",
+      "title": "GCS cache credentials missing after Helm setup",
+      "partition": "reference",
+      "report": "Cache setup reports that GCS is configured but credentials are missing. The generated Runner configuration lacks CredentialsFile.",
+      "failureType": "Cache",
+      "executor": "Kubernetes",
+      "hosting": "Unknown",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/cache-related-error-message-after-upgrade-to-11-40/20544/6",
+        "date": "2019-03-26",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Reporter documents the secret-key mismatch; a later participant mentions a documentation correction. Exact chart and Runner versions for this reply are not established."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Align the credential secret file key with the chart configuration; the reporter traced a mismatched spelling in the historical chart instructions.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. Reporter documents the secret-key mismatch; a later participant mentions a documentation correction. Exact chart and Runner versions for this reply are not established.",
+        "limitations": "Historical misspelling must not be copied into modern charts. Inspect generated configuration and expected secret keys."
+      }
+    },
+    {
+      "id": "scp-execution-user-2024",
+      "title": "SCP succeeds interactively but fails in the deployment job",
+      "partition": "holdout",
+      "report": "SCP works in an interactive session but the deployment job rejects public-key/password authentication.",
+      "failureType": "SSH authentication",
+      "executor": "Unknown",
+      "hosting": "Unknown",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/scp-from-gitlab-runner-to-host/104386/2",
+        "date": "2024-05-12",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "First-person public report inspected in search-indexed thread text; direct page fetch unavailable. No independent reproduction."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "The reporter resolved the mismatch after switching to the gitlab-runner user.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. ",
+        "limitations": "Executor and credential setup are not fully specified. Check the actual service user and key permissions; do not copy the source example that disables host-key verification."
+      }
+    },
+    {
+      "id": "terraform-module-ssh-2021",
+      "title": "Terraform cannot clone a private module in CI",
+      "partition": "reference",
+      "report": "Terraform module fetch fails with SSH public-key authentication in CI while a local initialization on the runner works.",
+      "failureType": "SSH authentication",
+      "executor": "Unknown",
+      "hosting": "GitLab.com",
+      "versions": {
+        "server": "",
+        "runner": "13.11.0",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/permission-error-with-terraform-while-cloning-a-git-module/48918/2",
+        "date": "2021-08-20",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Separate first-person reply reports Terraform 0.15.3 and Runner13.11.0. Explicitly says the original issue was not solved."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Reporter used an authenticated HTTPS module URL as a workaround; the underlying SSH issue remained unresolved.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. Separate first-person reply reports Terraform 0.15.3 and Runner13.11.0. Explicitly says the original issue was not solved.",
+        "limitations": "Use protected credentials; never embed a token in shared source. Workaround does not establish why SSH authentication failed."
+      }
+    },
+    {
+      "id": "pod-metrics-labels-2024",
+      "title": "Runner job labels absent from Prometheus resource metrics",
+      "partition": "reference",
+      "report": "K3s runners deployed by Helm and ArgoCD need job-level resource metrics, but the expected pod labels are not available in the metric series.",
+      "failureType": "Observability",
+      "executor": "Kubernetes",
+      "hosting": "Unknown",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/solved-kubernetes-executor-runner-job-metrics-scrape-pod-labels-annotations-with-prometheus/114763/2",
+        "date": "2024-10-10",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "First-person public report inspected in search-indexed thread text; direct page fetch unavailable. No independent reproduction."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Reporter enabled kube-state-metrics annotation collection and joined those labels to resource metrics with PromQL.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. ",
+        "limitations": "Possible bug was only suspected. Label collection has cardinality and information exposure implications; choose required labels rather than copying a wildcard allowlist."
+      }
+    },
+    {
+      "id": "autoscale-cert-user-2019",
+      "title": "Docker-machine TLS certificates belong to a different user",
+      "partition": "reference",
+      "report": "During a DigitalOcean-to-AWS migration, autoscaling creates instances and SSH works, but the remote Docker connection rejects its TLS certificate.",
+      "failureType": "TLS trust",
+      "executor": "Docker",
+      "hosting": "Unknown",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/solved-autoscale-docker-machine-throwing-bad-certificate/27423/2",
+        "date": "2019-06-21",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "First-person public report inspected in search-indexed thread text; direct page fetch unavailable. No independent reproduction."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Reporter regenerated Docker-machine certificates under the same user that runs the Runner service.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. ",
+        "limitations": "Docker+machine historical setup. Certificate replacement is disruptive; inventory ownership and backups first. Do not generalize to disabling TLS."
+      }
+    },
+    {
+      "id": "windows-shell-parser-2024",
+      "title": "Windows PowerShell job fails parsing generated variables",
+      "partition": "holdout",
+      "report": "A Windows shell job exits while parsing generated environment-variable assignments before normal job work. Runner16.11.1 is reported. A different participant later says PowerShell7 helped a similar case.",
+      "failureType": "Shell initialization",
+      "executor": "Shell",
+      "hosting": "GitLab.com",
+      "versions": {
+        "server": "",
+        "runner": "16.11.1",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/job-fails-immediately-after-executing-pipeline/105560",
+        "date": "2024-06-02",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "unresolved",
+        "note": "Original reporter does not confirm a resolution in inspected text. Later PowerShell7 success belongs to another participant and is not treated as this case outcome."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "unresolved",
+        "fix": "",
+        "cause": "",
+        "verification": "No confirmed outcome established for this episode in the inspected source.",
+        "limitations": "Historical, environment-specific report. Missing versions remain unknown; verify current applicability before changes."
+      }
+    },
+    {
+      "id": "windows-image-shell-2019",
+      "title": "Windows job image lacks the expected shell executable",
+      "partition": "reference",
+      "report": "Windows container job fails at CreateProcess with file-not-found. Discussion distinguishes images providing powershell.exe from those with only pwsh.exe.",
+      "failureType": "Image compatibility",
+      "executor": "Docker",
+      "hosting": "Unknown",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/gitlab-windows-runner-fails-cannot-find-file/29174/4",
+        "date": "2019-11-13",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Outcome belongs to the confirming participant, not proof for every report in the thread. Exact Runner version for that participant is unknown."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "A participant confirmed success using an image that supplied the expected Windows PowerShell executable.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. Outcome belongs to the confirming participant, not proof for every report in the thread. Exact Runner version for that participant is unknown.",
+        "limitations": "Check host/container OS and configured shell together; historical .NET image tags are not current recommendations."
+      }
+    },
+    {
+      "id": "large-clone-conntrack-2017",
+      "title": "Large HTTPS clone fails with early EOF inside Docker",
+      "partition": "reference",
+      "report": "Large repository clones fail intermittently inside Docker through an nginx TLS reverse proxy with RPC failure and early EOF.",
+      "failureType": "Network transport",
+      "executor": "Docker",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/docker-container-cloning-large-repo-fails-solved/6845",
+        "date": "2017-03-14",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "First-person public report inspected in search-indexed thread text; direct page fetch unavailable. No independent reproduction."
+      },
+      "unsuccessfulSteps": [
+        {
+          "step": "Checked reverse-proxy timeouts, cipher suites and body limits.",
+          "evidence": "Reporter lists these among unsuccessful investigations."
+        },
+        {
+          "step": "Rebuilt Git with OpenSSL and adjusted Docker MTU.",
+          "evidence": "Reporter still needed a different workaround."
+        }
+      ],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Reporter changed the host conntrack TCP behavior and reported subsequent clones succeeding.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. ",
+        "limitations": "Host-wide networking change; not a default recommendation. Historical versions unspecified and no controlled root-cause isolation. Have a network owner verify evidence."
+      }
+    },
+    {
+      "id": "public-registry-stale-auth-2025",
+      "title": "Stale Docker authentication blocks a public image pull",
+      "partition": "holdout",
+      "report": "A public registry image returns access denied in one user context; a later participant reports encountering this symptom with saved registry authentication.",
+      "failureType": "Registry authentication",
+      "executor": "Unknown",
+      "hosting": "GitLab.com",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/sometimes-access-denied-when-pulling-docker-image-from-public-project/99864/2",
+        "date": "2025-04-25",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "Separate first-person reply. Original reporter host details and versions are not attributed to this participant."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "That participant removed an outdated registry entry from the Docker client authentication configuration and reported success.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. Separate first-person reply. Original reporter host details and versions are not attributed to this participant.",
+        "limitations": "Review the specific stale entry and preserve other credentials; do not delete the entire Docker configuration."
+      }
+    },
+    {
+      "id": "registry-project-allowlist-2023",
+      "title": "Cross-project image pull denied despite local access",
+      "partition": "holdout",
+      "report": "A common CI image pulls locally but the consuming project cannot pull it in a job.",
+      "failureType": "Image pull",
+      "executor": "Docker",
+      "hosting": "GitLab.com",
+      "versions": {
+        "server": "",
+        "runner": "",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/pulling-docker-image-from-gitlab-container-registry-stopped-working-only-for-one-project/70484/15",
+        "date": "2023-11-27",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "First-person public report inspected in search-indexed thread text; direct page fetch unavailable. No independent reproduction."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Reporter allowed the consuming project in the source project job-token access list, including its full group/subgroup path.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. ",
+        "limitations": "Grant only the required project access. Other thread replies use different versions and methods; do not publish a private project or disable access limits."
+      }
+    },
+    {
+      "id": "shared-runner-cache-2021",
+      "title": "Intermittent dependencies disappear across shared Docker runners",
+      "partition": "reference",
+      "report": "After moving to two shared Docker runners, jobs intermittently lack previously installed dependencies. Retries sometimes help and cache configuration changes give mixed results.",
+      "failureType": "Cache",
+      "executor": "Docker",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "14.2.1",
+        "runner": "14.2.0",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/gitlab-pipeline-randomly-failing-using-docker-runners-suspect-caching-issue/57736",
+        "date": "2021-08-26",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "unresolved",
+        "note": "Interim improvement after disabling caching was followed by continued cache questions. No stable, isolated resolution is established in inspected text."
+      },
+      "unsuccessfulSteps": [
+        {
+          "step": "Retried individual failed jobs and whole pipelines.",
+          "evidence": "Failures could move to a later job."
+        },
+        {
+          "step": "Added cache configuration and restarted containers.",
+          "evidence": "Discussion still reports missing dependencies and uncertainty about effective settings."
+        }
+      ],
+      "outcome": {
+        "type": "unresolved",
+        "fix": "",
+        "cause": "",
+        "verification": "No confirmed outcome established for this episode in the inspected source.",
+        "limitations": "Historical, environment-specific report. Missing versions remain unknown; verify current applicability before changes."
+      }
+    },
+    {
+      "id": "windows-cache-disappears-2019",
+      "title": "Windows Docker cache archive disappears before restore",
+      "partition": "reference",
+      "report": "Runner12.1.0 with Docker Desktop2.1.0.1 on Windows appears to remove cache.zip before restoration. The reporter seeks confirmation before filing a bug.",
+      "failureType": "Cache",
+      "executor": "Docker",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "",
+        "runner": "12.1.0",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/windows-docker-executor-deletes-cache-zip-before-cache-is-restored/29259",
+        "date": "2019-08-22",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "unresolved",
+        "note": "Observed cache behavior is a reporter hypothesis. No verified outcome was available in inspected thread text."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "unresolved",
+        "fix": "",
+        "cause": "",
+        "verification": "No confirmed outcome established for this episode in the inspected source.",
+        "limitations": "Historical, environment-specific report. Missing versions remain unknown; verify current applicability before changes."
+      }
+    },
+    {
+      "id": "helm-registration-token-2023",
+      "title": "Helm runner registration fails with a token in the wrong field",
+      "partition": "reference",
+      "report": "K3s runner cannot verify against a self-managed GitLab container behind a reverse proxy. Switching URL endpoints did not resolve registration.",
+      "failureType": "Runner registration",
+      "executor": "Kubernetes",
+      "hosting": "Self-managed",
+      "versions": {
+        "server": "",
+        "runner": "15.10.1",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/solved-errors-when-registering-runner-on-kubernetes/84967/2",
+        "date": "2023-04-15",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "First-person public report inspected in search-indexed thread text; direct page fetch unavailable. No independent reproduction."
+      },
+      "unsuccessfulSteps": [
+        {
+          "step": "Tried reverse-proxy and direct HTTP/HTTPS endpoints.",
+          "evidence": "Verification failed or direct endpoint refused connections."
+        }
+      ],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Reporter moved the token to the historical runnerRegistrationToken field and reported success.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. ",
+        "limitations": "Historical legacy registration flow. Later GitLab versions use authentication tokens differently; determine version and token type before advice. Do not apply this old field universally."
+      }
+    },
+    {
+      "id": "artifact-relative-path-2020",
+      "title": "Artifact path stops matching after a Runner release change",
+      "partition": "holdout",
+      "report": "Artifact upload reports no matching files after changing from Runner12.10.0-rc2 to13.0.0-rc1; the path is a single dot.",
+      "failureType": "Artifact upload",
+      "executor": "Docker",
+      "hosting": "GitLab.com",
+      "versions": {
+        "server": "",
+        "runner": "13.0.0-rc1",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/artifact-not-created-since-switching-to-v13-of-gitlab-runner/37719/2",
+        "date": "2020-05-18",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "First-person public report inspected in search-indexed thread text; direct page fetch unavailable. No independent reproduction."
+      },
+      "unsuccessfulSteps": [],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Reporter changed the artifact path from a single dot to dot-slash and confirmed the upload worked.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. ",
+        "limitations": "Release-candidate-specific historical behavior, not evidence for all current releases. Scope artifacts to intended outputs; do not archive an entire checkout blindly."
+      }
+    },
+    {
+      "id": "duplicate-runner-disk-2026",
+      "title": "Disk-full errors persist after cleanup on a migrated runner",
+      "partition": "reference",
+      "report": "After migrating a runner, Docker jobs intermittently report disk exhaustion despite available bytes and inodes. Runner18.8.0 appears in the reported logs.",
+      "failureType": "Storage exhaustion",
+      "executor": "Docker",
+      "hosting": "Unknown",
+      "versions": {
+        "server": "",
+        "runner": "18.8.0",
+        "chart": ""
+      },
+      "source": {
+        "url": "https://forum.gitlab.com/t/gitlab-runner-fails-with-no-space-left-on-device-even-though-there-is-enough-space-there/132496/14",
+        "date": "2026-02-24",
+        "reviewedAt": "2026-09-27",
+        "reviewer": "Local primary-source review",
+        "inspection": "indexed",
+        "confidence": "reporter-confirmed",
+        "note": "First-person provisional recovery, not a controlled root-cause proof. Earlier replies include speculative AI-generated explanations; those are excluded from the record."
+      },
+      "unsuccessfulSteps": [
+        {
+          "step": "Reduced concurrency and changed pull policy and Docker temporary directory.",
+          "evidence": "Reporter said the error continued after these changes."
+        },
+        {
+          "step": "Moved temporary storage and pruned images and volumes.",
+          "evidence": "Errors recurred with substantial free space and inodes."
+        }
+      ],
+      "outcome": {
+        "type": "workaround",
+        "fix": "Reporter discovered an old VM running duplicated Runner IDs, stopped that service and observed pipelines working again, with monitoring still planned.",
+        "cause": "",
+        "verification": "Reporter describes this outcome; not independently reproduced. First-person provisional recovery, not a controlled root-cause proof. Earlier replies include speculative AI-generated explanations; those are excluded from the record.",
+        "limitations": "Verify the identity and host actually executing the job. Reported recovery was still under observation; do not infer disk cleanup or concurrency is universally ineffective."
+      }
+    }
+  ]
+}

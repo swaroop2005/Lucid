@@ -1,0 +1,20 @@
+import { resolve } from 'node:path';
+import express from 'express';
+import {EvidenceStore} from './evidence-store.js';
+import {seedDemoEvidence} from './demo-evidence.js';
+import { Store } from './db.js';
+import { createApp } from './app.js';
+import {createInvestigationAuthorizer} from './hindsight-budget.js';
+import { CloudSettings } from './settings.js';
+import { configuration } from './providers.js';
+const config=configuration(),store=new Store(resolve(process.env.DATA_FILE||'.data/lucid.sqlite'));
+const evidence=new EvidenceStore(resolve(process.env.EVIDENCE_FILE||'.data/evidence.sqlite'));
+if(process.env.NODE_ENV!=='test')seedDemoEvidence(evidence);
+const settings=new CloudSettings(resolve(process.env.SETTINGS_FILE||'.data/cloud-credentials.json'));
+const authorizeHindsight=createInvestigationAuthorizer({ledgerPath:resolve(process.env.HINDSIGHT_CREDIT_LEDGER||'work/hindsight-50-ledger.json'),store,settings});
+const {app,worker}=createApp(store,config,{evidence,settings,authorizeHindsight});
+if(process.env.NODE_ENV==='production')app.use(express.static(resolve('dist')));
+else {const {createServer}=await import('vite');const vite=await createServer({server:{middlewareMode:true,hmr:{port:Number(process.env.PORT||4317)+1000}},appType:'spa'});app.use(vite.middlewares);}
+const server=app.listen(Number(process.env.PORT||4317),'127.0.0.1',()=>console.log(`Lucid is available at http://127.0.0.1:${process.env.PORT||4317} · memory: ${config.memoryMode} · agent: ${config.agentMode}`));
+void worker.run();
+process.on('SIGTERM',()=>server.close(()=>{store.close();process.exit(0);}));

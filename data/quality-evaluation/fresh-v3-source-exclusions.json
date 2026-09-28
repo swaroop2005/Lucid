@@ -1,0 +1,13 @@
+{
+  "evaluation": "hindsight-fresh-v3",
+  "sourceInputsHash": "61b63a2172822cdc3629d3ff4f41eb5468dda35c566152f1371f604e4e3c293b",
+  "reason": "Frozen local-new evaluation episodes, permanently excluded from curation and retention.",
+  "urls": [
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/issues/38721",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/issues/38804",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/38721",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/38804",
+    "https://gitlab.com/gitlab-org/gitlab-runner/issues/38721",
+    "https://gitlab.com/gitlab-org/gitlab-runner/issues/38804"
+  ]
+}

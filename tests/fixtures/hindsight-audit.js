@@ -1,0 +1,5 @@
+export const isAuditQuery=query=>query.startsWith('LUCID_EVIDENCE_AUDIT_V1\n');
+export function auditResponseFor(query,candidateResponse){
+ const marker='Frozen audit data follow:\n',data=JSON.parse(query.slice(query.indexOf(marker)+marker.length));
+ return {text:'Private evidence audit response',structured_output:{assessment:'candidate-withheld-for-review',claimAudit:[{draftField:'customer',questionIndex:null,draftQuote:data.candidate.customer.slice(0,1200),claimType:'hypothesis',verdict:'uncertain',evidence:[],currentConditions:[],reason:'The current explanation remains unconfirmed.'}],reportedCaseQuotes:[],hypotheses:[],questions:[{question:'Which component produced the recorded response?',expectedObservation:'The response owner and its diagnostic record.',ifObserved:'This would help distinguish component-specific explanations.',ifNotObserved:'The responsible component would remain unknown.',evidence:[],knownContext:[]}],limitations:['The current cause remains unconfirmed.']},based_on:structuredClone(candidateResponse.based_on),trace:{tool_calls:[],llm_calls:[{scope:'audit',duration_ms:2}]},usage:{input_tokens:120,output_tokens:60}};
+}

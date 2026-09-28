@@ -1,0 +1,44 @@
+{
+  "name": "lucid",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env server/index.js",
+    "start": "NODE_ENV=production node --env-file-if-exists=.env server/index.js",
+    "build": "tsc --noEmit && vite build",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "playwright test",
+    "ingest:public": "node scripts/ingest-public-reports.js",
+    "lint": "eslint src server scripts tests *.js",
+    "enrich:public": "node scripts/enrich-public-reports.js",
+    "docs:cache": "node scripts/cache-versioned-docs.js",
+    "cloud:configure": "node --env-file-if-exists=.env scripts/configure-cloud.js",
+    "cloud:authorize": "node --env-file-if-exists=.env scripts/authorize-cloud.js",
+    "library": "node scripts/private-library.js"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.0",
+    "@vectorize-io/hindsight-client": "0.10.1",
+    "express": "^5.1.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.55.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^10.11.0",
+    "globals": "^16.5.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.70.1",
+    "vite": "^6.1.0"
+  }
+}

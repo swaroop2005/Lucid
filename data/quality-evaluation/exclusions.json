@@ -1,0 +1,60 @@
+[
+  {
+    "sourceId": "gitlab-runner-39589",
+    "formerTestId": "Q04",
+    "reason": "Conservatively excluded before paid calls: two-hop public issue-reference graph intersects learning28243 through37835,10341,37244,38329. These may be generic related-issue hubs rather than duplicates, but enough independent tests remain."
+  },
+  {
+    "sourceId": "gitlab-runner-29099",
+    "formerTestId": "Q09",
+    "reason": "Conservatively excluded before paid calls: two-hop public issue-reference graph intersects learning30874 through27577. No direct shared fixing change found, but retain stricter cluster separation."
+  },
+  {
+    "sourceId": "gitlab-runner-37904",
+    "reason": "Body contains a first-person network-isolation workaround, but participant notes do not provide a dated tested recovery. Excluded from learning to avoid treating edited-body date as outcome date and to avoid casual transfer of isolation removal."
+  },
+  {
+    "sourceId": "gitlab-runner-39348",
+    "reason": "Platform-specific symptom candidate withheld: later long explanation is explicitly AI-generated, and body workaround is second-hand without a dated participant recovery. Could be a diagnostic-only test but replaced by correction-backed39551."
+  },
+  {
+    "sourceId": "gitlab-runner-2582",
+    "reason": "Machine source-success includes imperative reproduction/control behavior and second-hand another-user statement; not accepted as a learning recovery."
+  },
+  {
+    "sourceId": "gitlab-runner-1936",
+    "reason": "Source-success candidate is hedged second-hand restarting-registry statement; not used as verified learning."
+  },
+  {
+    "sourceId": "gitlab-runner-26869",
+    "reason": "Already used by existing product evaluation/seed corpus; excluded from independent broader set."
+  },
+  {
+    "sourceId": "gitlab-runner-37242",
+    "reason": "Already used by existing product evaluation/seed corpus; excluded."
+  },
+  {
+    "sourceId": "gitlab-runner-38356",
+    "reason": "Already used in earlier live/product demonstrations; excluded from this fresh learning/test selection."
+  },
+  {
+    "sourceId": "gitlab-runner-30869",
+    "reason": "Explicit possible duplicate/architecture cluster of learning30874; barred from test."
+  },
+  {
+    "sourceId": "gitlab-runner-21610",
+    "reason": "RBAC issue linked by successful learning28243; barred from test."
+  },
+  {
+    "sourceId": "gitlab-runner-28167",
+    "reason": "RBAC issue linked by successful learning28243; barred from test."
+  },
+  {
+    "sourceId": "gitlab-runner-2659",
+    "reason": "TLS/submodule related issue linked by learning3497; barred from test."
+  },
+  {
+    "sourceId": "gitlab-runner-2868",
+    "reason": "TLS/submodule related issue linked by learning3497; barred from test."
+  }
+]

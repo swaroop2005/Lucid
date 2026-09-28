@@ -1,0 +1,35 @@
+import {test,expect} from '@playwright/test';
+import {officialDocumentFixture} from '../fixtures/official-document.js';
+import {officialDocumentEvidence} from '../../server/hindsight-documents.js';
+
+test('official DOC sections remain inert and exact-version contributions keep their source classification',async({page})=>{
+ const fixture=officialDocumentFixture(),errors=[],unexpected=[];
+ page.on('pageerror',error=>errors.push(error.message));
+ page.on('request',request=>{if(request.url().includes('official-doc-inert'))unexpected.push(request.url());});
+ const state=await (await page.request.get('/api/workspace')).json(),c=state.cases.find(c=>c.id==='CS-1042');
+ c.runnerVersion=fixture.document.version;c.hosting='Self-managed';
+ c.analysis={useMemory:true,provider:'Hindsight Reflect · offline browser fixture',at:'2026-09-28T00:02:00Z',finding:'The official source supports a diagnostic check; the current cause remains unknown.',questions:[],references:[officialDocumentEvidence(fixture.document)],candidates:[],incidentCandidates:[],modelResult:{provider:'Hindsight',searchDepth:'high',citations:[fixture.document.id],nextQuestions:[],evidenceIds:[fixture.document.id],evidenceSelection:{omitted:[],rejected:[]},traceSummary:{toolCalls:1,llmCalls:1},provenance:{readCount:1,records:[fixture.record]}}};
+ await page.route('**/api/workspace',route=>route.fulfill({json:state}));
+ await page.route('**/api/official-documents',route=>route.fulfill({json:[fixture.publicDocument]}));
+ await page.goto('/#knowledge');
+ const heading=page.getByRole('heading',{name:'Official versioned documentation',exact:true}),panel=page.locator('section').filter({has:heading});
+ await expect(heading).toBeVisible();await expect(panel.getByText('1 of 1 verified in Hindsight',{exact:true})).toBeVisible();
+ await expect(panel.getByText(/separate from historical case lessons/)).toBeVisible();
+ const document=panel.locator('details').filter({has:page.locator(`summary strong`,{hasText:fixture.document.title})}).first();
+ await document.locator(':scope > summary').click();
+ await expect(document.locator('pre')).toHaveText(fixture.document.sectionText);
+ await expect(document.getByRole('link',{name:'Read the exact official source ↗'})).toHaveAttribute('href',fixture.document.url);
+ await expect(document.locator('img,script')).toHaveCount(0);expect(await page.evaluate(()=>window.officialDocExecuted)).toBeUndefined();expect(unexpected).toEqual([]);
+ await document.getByText('Source integrity',{exact:true}).click();await expect(document.getByText(`File SHA-256: ${fixture.document.sourceHash}`,{exact:false})).toBeVisible();
+ await page.goto('/#cases');await page.getByRole('tab',{name:'Investigation',exact:true}).click();await page.getByText('Evidence provided to the AI',{exact:true}).click();
+ const evidence=page.locator('details.memory-provenance');
+ await expect(evidence.getByText(`${fixture.document.id} · revision 1`,{exact:true})).toBeVisible();
+ await expect(evidence.getByText(/Official documentation 19\.3\.0/)).toBeVisible();
+ await expect(evidence.getByRole('link',{name:'Exact source ↗'})).toHaveAttribute('href',fixture.document.url);
+ await expect(evidence.getByText(fixture.record.text,{exact:true})).toBeVisible();
+ const reference=page.locator('article').filter({has:page.getByRole('heading',{name:fixture.document.title,exact:true})});
+ await expect(reference).toBeVisible();await expect(reference.getByText('Source-reviewed study',{exact:true})).toHaveCount(0);
+ await expect(reference.getByRole('link',{name:'Read official guidance'})).toHaveAttribute('href',fixture.document.url);
+ await expect(reference.getByText(/runner 19\.3\.0 \(exact source release\)/)).toBeVisible();
+ await expect(reference.locator('img,script')).toHaveCount(0);expect(await page.evaluate(()=>window.officialDocExecuted)).toBeUndefined();expect(unexpected).toEqual([]);expect(errors).toEqual([]);
+});

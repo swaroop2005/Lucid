@@ -1,0 +1,20 @@
+{
+  "evaluation": "hindsight-fresh",
+  "sourceInputsHash": "ddd60f5875796db1286db8f40304f3df94f6a7c7c0f7f19b00871dfd780b0e97",
+  "reason": "Frozen new-to-evaluation source episodes and linked changes. Never admit as operational knowledge or retention.",
+  "urls": [
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/commit/064921c07da8d45f89c51f0fd925fede488b949b",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/commit/168e017c9bccf13d507ab352a9dcd3e391775809",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/issues/38370",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/issues/38901",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/issues/39427",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/5230",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/merge_requests/6713",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/38370",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/38901",
+    "https://gitlab.com/gitlab-org/gitlab-runner/-/work_items/39427",
+    "https://gitlab.com/gitlab-org/gitlab-runner/issues/38370",
+    "https://gitlab.com/gitlab-org/gitlab-runner/issues/38901",
+    "https://gitlab.com/gitlab-org/gitlab-runner/issues/39427"
+  ]
+}
