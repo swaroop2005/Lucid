@@ -60,6 +60,7 @@ Tests use isolated stores and fake provider responses. Passing software tests do
 - [Architecture and source boundaries](docs/ARCHITECTURE.md)
 - [Case-to-knowledge workflow](docs/WORKFLOW.md)
 - [Cloud checkpoints and recovery](docs/CLOUD-WORKSPACE.md)
+- [MVP demo: default versus experimental investigation](docs/MVP-DEMO.md)
 - [Quality results and known limits](docs/QUALITY.md)
 - [Third-party notices](docs/THIRD-PARTY-NOTICES.md)
 
