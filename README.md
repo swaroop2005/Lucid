@@ -38,9 +38,13 @@ A workspace has one cooperating editor. Owner handoff detects observed competing
 
 Save your Hindsight endpoint, bank and key in **Connections**, then deliberately authorize paid usage through the supplied local setup command. Settings alone grant no spending authority. An operational save can initiate a checkpoint once existing authority permits the complete batch; reservations are estimates, not bills or a provider-enforced balance. Approved learning queued earlier can resume at startup or after connection changes. Operational checkpoints themselves do not start merely because the app boots or a status page polls.
 
-A fresh clone includes small synthetic/authored fixtures, not downloaded report discussions, versioned-document caches, the earlier 247-article private library, credentials or prior spending authorization. Cloud facts alone cannot reconstruct canonical records. A complete verified operational archive can be recovered through the new recovery workflow; otherwise a controlled private library handoff remains available. This repository does not claim that any particular live bank has completed migration.
+A fresh clone includes small synthetic/authored fixtures and the public source metadata index, not downloaded report discussions, versioned-document caches, the earlier 247-article private library, credentials or prior spending authorization. Cloud facts alone cannot reconstruct canonical records. A complete verified operational archive can be recovered through the new recovery workflow; otherwise a controlled private library handoff remains available. This repository does not claim that any particular live bank has completed migration.
 
 Follow [setup](docs/SETUP.md) before enabling paid work. All operational databases, Cloud credentials, budget ledgers, private backups and evaluation traces stay outside version control.
+
+## Public dataset and provenance
+
+The [public report dataset](data/public-dataset/README.md) includes a complete **8,348-record source index** with original GitLab Runner URLs, dates, topic categories and a checksum. Original contributors receive attribution. Issue bodies and discussions remain outside Git; the included `dataset:fetch` command can retrieve current public report text into a local installation in explicit, bounded batches. This is source traceability, not an accuracy benchmark or 8,348 verified resolutions.
 
 ## Development checks
 

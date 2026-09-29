@@ -18,7 +18,8 @@
     "docs:cache": "node scripts/cache-versioned-docs.js",
     "cloud:configure": "node --env-file-if-exists=.env scripts/configure-cloud.js",
     "cloud:authorize": "node --env-file-if-exists=.env scripts/authorize-cloud.js",
-    "library": "node scripts/private-library.js"
+    "library": "node scripts/private-library.js",
+    "dataset:fetch": "node scripts/fetch-dataset.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.0",

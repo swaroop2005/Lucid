@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "representation": "public-source-metadata-index",
+  "project": "gitlab-org/gitlab-runner",
+  "source": "https://gitlab.com/gitlab-org/gitlab-runner/-/issues",
+  "records": 8348,
+  "exportedAt": "2026-09-29T02:57:19.396489+00:00",
+  "indexSha256": "fd718f5e06c8bf3ef30e887769640540083111b2b296c5f4692937eae399eeaa",
+  "earliestIssueCreatedAt": "2014-11-15T20:48:49.573Z",
+  "latestIssueCreatedAt": "2026-09-26T21:26:10.750Z",
+  "latestObservedIssueUpdate": "2026-09-27T00:26:21.325Z",
+  "states": {
+    "closed": 5786,
+    "opened": 2562
+  },
+  "families": {
+    "Artifacts": 520,
+    "Authentication & permissions": 588,
+    "Build environment": 1118,
+    "Caching": 758,
+    "Configuration & upgrades": 574,
+    "Container images": 551,
+    "Kubernetes execution": 999,
+    "Network & DNS": 494,
+    "Other runner reports": 1434,
+    "Resource pressure": 179,
+    "Runner lifecycle": 354,
+    "Windows execution": 779
+  },
+  "collectionDatePerRecordAvailable": false,
+  "containsReportBodies": false,
+  "containsDiscussionComments": false,
+  "containsKnowledgeArticles": false,
+  "licenseForUpstreamIssueText": "Not asserted; see README.md.",
+  "classification": "First matching keyword family from the ingestion script; not expert annotation.",
+  "limitations": [
+    "A selected local corpus, not all GitLab Runner issues.",
+    "Closed does not mean fixed or independently verified.",
+    "Live refetch can differ from the original collection; removed or confidential sources are skipped.",
+    "Not a training or accuracy benchmark; source-linked reconstructed cases may overlap reports."
+  ]
+}

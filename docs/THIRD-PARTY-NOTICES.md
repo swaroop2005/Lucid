@@ -6,13 +6,15 @@ This document does not grant or invent a license for Lucid's application code. A
 
 ## GitLab Runner material
 
-The project references public GitLab Runner issues and official documentation and includes reconstructed source-based fixtures. Where GitLab Runner software or associated documentation is reproduced under its MIT license, retain the supplied copyright and permission notice:
+The project references public GitLab Runner issues and official documentation and includes reconstructed source-based fixtures. For GitLab Runner software covered by its MIT license, retain the supplied copyright and permission notice:
 
 - [GitLab Runner MIT notice](GITLAB-RUNNER-LICENSE.txt)
 
 That notice applies to the material covered by its terms. It does not automatically license all issue comments, every GitLab web page or this application's original code. Source links and review labels describe provenance; they do not establish a blanket redistribution license.
 
-The large downloaded report/discussion corpus, cached versioned documentation and prepared retained knowledge collection are not included in the public package. Any later private import should preserve its source attribution and applicable notices.
+A metadata-only [public source index](../data/public-dataset/README.md) is included, with source URLs, dates and derived categories. Original reports are credited to their GitLab Runner community contributors. The downloaded report bodies/discussions, cached versioned documentation and prepared retained knowledge collection are not included in the public package. The optional download tool obtains current public descriptions directly from GitLab into ignored local storage; it grants no redistribution rights. Any later private import should preserve its source attribution and applicable notices.
+
+The upstream [contribution notice](https://github.com/gitlabhq/gitlab-runner/blob/main/CONTRIBUTING.md) identifies documentation under its docs directory as CC BY-SA 4.0. Do not assume the software MIT notice covers all documentation or community issue content. This dataset addition reproduces no documentation pages or issue prose.
 
 ## JavaScript dependencies
 

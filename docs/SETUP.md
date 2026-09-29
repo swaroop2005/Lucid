@@ -32,7 +32,7 @@ npm run test:e2e
 
 Browser tests create an isolated server and fixture databases, use bundled Chromium and fake provider responses, and must not reuse private settings. Some Linux systems need browser system libraries; `npx playwright install --with-deps chromium` may require administrator privileges. These downloads are separate from paid AI use.
 
-Do not run archival, ingestion or evaluation utilities merely to populate an empty panel. The full report corpus, previous 247-article library, downloaded discussions, official-source proofs and versioned-document cache are excluded. Small authored/synthetic research fixtures are included; they are not the downloaded corpus.
+For historical report text, use the explicit bounded download procedure in the [public dataset guide](../data/public-dataset/README.md). A metadata index is included, but it does not automatically populate source-text panels. Do not run cloud archival or evaluation utilities merely to populate an empty panel. The full report corpus, previous 247-article library, downloaded discussions, official-source proofs and versioned-document cache are excluded. Small authored/synthetic research fixtures are included; they are not the downloaded corpus.
 
 ## Private local state
 
@@ -119,7 +119,7 @@ Import refuses an existing destination, checks identities/checksum, preserves th
 ## Troubleshooting
 
 - **SQLite errors:** verify the Node version and reinstall dependencies after changing runtime.
-- **Empty historical/source panels:** excluded corpora/caches are not downloaded during setup.
+- **Empty historical/source panels:** source text is not downloaded during setup. Use the public dataset guide to fetch indexed report descriptions locally; discussions and documentation caches remain separate.
 - **Configured but preparation unavailable:** check matching workspace/connection allowance; settings alone grant none.
 - **Pending Cloud save:** inspect whole-save estimate, ingestion allowance, recorded owner and exact status. Pending is local success without verified Cloud completion.
 - **Uncertain write or identity mismatch:** preserve the journal and reconcile read-only; do not blindly resend or alter proof fields.
