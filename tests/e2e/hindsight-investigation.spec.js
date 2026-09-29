@@ -45,3 +45,17 @@ test('Hindsight is the only AI workflow and exposes search depth and evidence co
  await page.goto('/#connections');await expect(page.getByLabel('OpenAI API key')).toHaveCount(0);await expect(page.getByText(/Standalone paid connection checks and manual retention are paused/)).toBeVisible();
  expect(errors).toEqual([]);
 });
+
+test('memory summary and saved investigations preserve the answer and link selected lessons without provider calls',async({page})=>{
+ const state=await(await page.request.get('/api/workspace')).json();state.config.cloudMemoryAvailable=true;
+ const c=state.cases.find(c=>c.id==='CS-1042');c.analysis={useMemory:false,provider:'Hindsight evidence plan',at:'2026-09-29T00:00:00Z',finding:'Keep this saved answer.',questions:[],references:[],candidates:[],incidentCandidates:[]};
+ c.savedInvestigations=[{at:'2026-09-29T00:01:00Z',useMemory:true,status:'withheld',articleIds:['KA-0217']},{at:'2026-09-29T00:00:00Z',useMemory:false,status:'delivered',articleIds:[]}];
+ state.articles=[{id:'KA-0217',revision:1,title:'Historical helper lesson',fix:'A historical participant changed the helper flavor.',cause:'',verification:'Source reported recovery.',limitations:'Not a universal fix.',hosting:'Self-managed',executor:'Kubernetes',serverVersion:'',runnerVersion:'',chartVersion:'',sourceIds:[],sourceCases:[],history:[],reviewer:'AI source inspection',sync:'local-only',updatedAt:'2026-09-29T00:00:00Z'}];
+ const mutations=[];await page.route('**/api/**',async route=>{if(route.request().method()!=='GET'){mutations.push(route.request().url());return route.abort();}if(new URL(route.request().url()).pathname==='/api/workspace')return route.fulfill({json:state});return route.continue();});
+ await page.goto('/#cases');await expect(page.getByRole('status',{name:'Investigation memory setting'})).toContainText('Stored knowledge will be included');
+ await page.locator('summary').filter({hasText:'Investigation options'}).click();await page.getByLabel('Include memory',{exact:true}).uncheck();await page.locator('summary').filter({hasText:'Investigation options'}).click();
+ await expect(page.getByRole('status',{name:'Investigation memory setting'})).toContainText('Stored knowledge is excluded');await expect(page.getByRole('status',{name:'Investigation memory setting'})).toContainText('Hindsight remains configured and will still run');
+ await page.getByRole('tab',{name:'Investigation',exact:true}).click();const history=page.getByRole('region',{name:'Saved investigations'});
+ await history.locator('summary').filter({hasText:'Result withheld'}).click();await expect(history).toContainText('No approved fix was delivered');await expect(page.getByText('Keep this saved answer.',{exact:true})).toBeVisible();
+ await history.getByRole('link',{name:'Open lesson KA-0217'}).click();await expect(page).toHaveURL(/#knowledge\?article=KA-0217$/);await expect(page.locator('#article-KA-0217')).toBeVisible();expect(mutations).toEqual([]);
+});
