@@ -19,7 +19,8 @@
     "cloud:configure": "node --env-file-if-exists=.env scripts/configure-cloud.js",
     "cloud:authorize": "node --env-file-if-exists=.env scripts/authorize-cloud.js",
     "library": "node scripts/private-library.js",
-    "dataset:fetch": "node scripts/fetch-dataset.js"
+    "dataset:fetch": "node scripts/fetch-dataset.js",
+    "dataset:verify": "node scripts/support-data.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.0",

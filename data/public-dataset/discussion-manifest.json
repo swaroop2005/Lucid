@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "representation": "source-metadata-only",
+  "project": "gitlab-org/gitlab-runner",
+  "exportedAt": "2026-09-29T03:49:06.946657+00:00",
+  "records": 58495,
+  "reportsWithDiscussion": 7089,
+  "allCollectedNotes": 123209,
+  "excludedSystemNotes": 64714,
+  "containsNoteText": false,
+  "containsAuthors": false,
+  "containsKnowledgeArticles": false,
+  "parts": [
+    {
+      "file": "discussions/part-001.jsonl",
+      "records": 10000,
+      "bytes": 2384756,
+      "sha256": "6e6f81f39d1263fbf945f3f3cca3a2e4c369439b677e160cfaeb09734af65ea4"
+    },
+    {
+      "file": "discussions/part-002.jsonl",
+      "records": 10000,
+      "bytes": 2410352,
+      "sha256": "475f8977c0fe6bfac122141322e42f3e630b8ca15d32c604db94c4cce621e17e"
+    },
+    {
+      "file": "discussions/part-003.jsonl",
+      "records": 10000,
+      "bytes": 2425004,
+      "sha256": "efce385de9586e326b6aceafe9da3e63f7b7cdcdf7b7d11972369f48e66f29be"
+    },
+    {
+      "file": "discussions/part-004.jsonl",
+      "records": 10000,
+      "bytes": 2409524,
+      "sha256": "40a91951c122728b2aa06b1b12cb410792c811bb5a676a25a736f85c2dc40120"
+    },
+    {
+      "file": "discussions/part-005.jsonl",
+      "records": 10000,
+      "bytes": 2428270,
+      "sha256": "cf74b7d10181ba1e70aaadaa28da00908392b2f7985f3c3a8538f6b138826eb9"
+    },
+    {
+      "file": "discussions/part-006.jsonl",
+      "records": 8495,
+      "bytes": 2035680,
+      "sha256": "9d02d6f69218718f43b37df4e8093863d8ef07725d97acfac45d7628a6e8714a"
+    }
+  ],
+  "coverage": {
+    "file": "discussion-coverage.jsonl",
+    "records": 8348,
+    "sha256": "ddfa44121238960afc58ba2982b319704a5200acd85b82f36280726128c43952"
+  },
+  "limitations": [
+    "Collector completion is not proof every historical comment remains available.",
+    "Links may later become unavailable or private.",
+    "No comment bodies, derived resolutions or evaluation labels are published."
+  ]
+}

@@ -20,8 +20,11 @@ Each record retains its original public URL. GitLab may display issue URLs as wo
 |---|---|
 | reports.jsonl | 8,348 records, one JSON object per line, ordered by numeric issue ID |
 | manifest.json | Record count, checksum, date coverage, category counts and limitations |
+| discussions/part-*.jsonl | 58,495 non-system note identities, source URLs, dates and local truncation flags |
+| discussion-coverage.jsonl | Per-report counts and recorded collector status for all 8,348 reports |
+| discussion-manifest.json | Discussion part checksums, totals and limitations |
 
-Every record has only these seven fields:
+Every record in `reports.jsonl` has only these seven fields:
 
 | Field | Meaning |
 |---|---|
@@ -33,7 +36,7 @@ Every record has only these seven fields:
 | state | Upstream opened/closed state observed by the collector |
 | family | Lucid's keyword-derived topic category, not an expert annotation |
 
-No usernames, email addresses, issue titles, report prose, comments, logs, credentials, API keys, source-derived resolution answers or local database files are included. This narrow metadata representation avoids distributing unreviewed free text. The index is roughly 2 MB and can be inspected directly without cloud credentials.
+No usernames, email addresses, issue titles, report prose, comments, logs, credentials, API keys, source-derived resolution answers or local database files are included. This narrow metadata representation avoids distributing unreviewed free text. The report index is roughly 2 MB. The expanded metadata package can also be inspected without cloud credentials.
 
 ## Coverage and collection method
 
@@ -78,3 +81,22 @@ Public visibility is not a blanket license grant for third-party issue prose. Th
 The index establishes source traceability. It does not demonstrate model accuracy, successful case resolution or improved reasoning from memory. Some Lucid examples were reconstructed from reports in this collection, and some reports concern features rather than failures. Do not call the collection an independent held-out benchmark or treat source-reported recovery as independently reproduced truth.
 
 Suggested attribution: "Lucid's research collection indexes 8,348 public reports from the GitLab Runner project. Original reports and discussions were contributed by the GitLab Runner community; Lucid provides source links and derived topic categories."
+
+## Discussion provenance and reference documentation
+
+The local collection contains 123,209 notes in total. This publication indexes the 58,495 non-system notes; 64,714 automated system notes are counted in coverage but not individually exported. Six JSONL parts contain only `noteId`, `reportId`, `url`, `createdAt`, `updatedAt`, and `textWasTruncatedLocally`. These are pointers to upstream discussion, not comment text, authors or extracted resolution claims. Collector status describes the recorded local run, not proof that every comment is still accessible or historically complete.
+
+The separate [versioned reference package](../public-reference-docs/README.md) includes 68 official documentation pages with source URLs, per-file hashes, attribution and CC BY-SA 4.0 notices. These are product documentation, not Lucid's knowledge articles.
+
+```sh
+npm run dataset:verify
+npm run dataset:verify -- --install-docs
+```
+
+Both commands operate locally with zero provider calls. To retrieve current discussion text after fetching report descriptions, the existing collector can run an explicitly bounded one-report batch:
+
+```sh
+ENRICH_CONCURRENCY=1 ENRICH_INTERVAL_MS=1000 npm run enrich:public -- --limit=1
+```
+
+A report can have many discussion pages. This limit bounds reports, not HTTP requests or comment count. The collector resumes local jobs and may fetch linked public evidence. It does not reproduce the exact original snapshot, create approved knowledge articles or upload memory. Respect source availability, terms and rate limits. Keep downloaded text private unless its redistribution is permitted. The included metadata does not automatically hydrate the discussion database.
